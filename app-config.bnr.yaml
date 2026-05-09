@@ -1,0 +1,23 @@
+# BNR / Synnergyze overlay configuration
+# Use with the default Backstage config, for example:
+# yarn dev --config app-config.yaml --config app-config.bnr.yaml
+
+app:
+  title: Synnergyze Client Assurance Cockpit
+  baseUrl: http://localhost:3000
+
+organization:
+  name: ESOMOIRE / BNR / Synnergyze
+
+catalog:
+  locations:
+    - type: file
+      target: catalog/bnr-synnergyze-commercial-catalog.yaml
+      rules:
+        - allow:
+            - Domain
+            - System
+            - Component
+            - Resource
+            - API
+            - Location
