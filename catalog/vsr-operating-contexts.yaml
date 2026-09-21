@@ -1,0 +1,197 @@
+apiVersion: backstage.io/v1alpha1
+kind: Component
+metadata:
+  name: synnergyze-operating-context-ui
+  title: Synnergyze Operating Context UI
+  description: Visible Spotlight context selector for switching between estate-wide Admin and scoped Developer operating contexts.
+  annotations:
+    bnr.esomoire.io/function: operating-context-ui
+    vsr.esomoire.io/authority-source: warden
+    vsr.esomoire.io/evidence-sink: river
+spec:
+  type: website
+  lifecycle: experimental
+  owner: group:default/esomoire
+  system: synnergyze-client-assurance-cockpit
+
+---
+apiVersion: backstage.io/v1alpha1
+kind: Component
+metadata:
+  name: warden-context-broker
+  title: Warden Context Broker
+  description: Resolves requested operating context into a bounded Warden authorization decision with scope and expiry.
+  annotations:
+    bnr.esomoire.io/function: context-authorization
+    vsr.esomoire.io/authority-source: warden
+spec:
+  type: service
+  lifecycle: experimental
+  owner: group:default/esomoire
+  system: synnergyze-client-assurance-cockpit
+  providesApis:
+    - synnergyze-operating-context-api
+
+---
+apiVersion: backstage.io/v1alpha1
+kind: Component
+metadata:
+  name: river-context-observer
+  title: River Context Observer
+  description: Records context resolution, transition and scoped action evidence without becoming the authorization source.
+  annotations:
+    bnr.esomoire.io/function: context-evidence
+    vsr.esomoire.io/authority-source: warden
+    vsr.esomoire.io/evidence-sink: river
+spec:
+  type: service
+  lifecycle: experimental
+  owner: group:default/esomoire
+  system: synnergyze-client-assurance-cockpit
+
+---
+apiVersion: backstage.io/v1alpha1
+kind: Resource
+metadata:
+  name: operating-context-registry
+  title: Operating Context Registry
+  description: Registry of allowed context shapes, scope references and policy bindings. Runtime authorization remains a Warden decision.
+  annotations:
+    bnr.esomoire.io/object-type: operating-context-registry
+spec:
+  type: data
+  owner: group:default/esomoire
+  system: synnergyze-client-assurance-cockpit
+
+---
+apiVersion: backstage.io/v1alpha1
+kind: API
+metadata:
+  name: synnergyze-operating-context-api
+  title: Synnergyze Operating Context API
+  description: Contract for reading, resolving and transitioning the active Admin or Developer context.
+  annotations:
+    bnr.esomoire.io/function: operating-context-api
+spec:
+  type: openapi
+  lifecycle: experimental
+  owner: group:default/esomoire
+  system: synnergyze-client-assurance-cockpit
+  definition: |
+    openapi: 3.0.3
+    info:
+      title: Synnergyze Operating Context API
+      version: 0.1.0
+    paths:
+      /context:
+        get:
+          operationId: getActiveContext
+          responses:
+            '200':
+              description: Current authorized operating context
+              content:
+                application/json:
+                  schema:
+                    $ref: '#/components/schemas/OperatingContext'
+      /context/resolve:
+        post:
+          operationId: resolveContext
+          description: Resolve a requested context through Warden without activating it.
+          requestBody:
+            required: true
+            content:
+              application/json:
+                schema:
+                  $ref: '#/components/schemas/ContextRequest'
+          responses:
+            '200':
+              description: Warden resolution result
+              content:
+                application/json:
+                  schema:
+                    $ref: '#/components/schemas/OperatingContext'
+            '403':
+              description: Requested context is not authorized
+      /context/transition:
+        post:
+          operationId: transitionContext
+          description: Activate an authorized context and emit River transition evidence.
+          requestBody:
+            required: true
+            content:
+              application/json:
+                schema:
+                  $ref: '#/components/schemas/ContextRequest'
+          responses:
+            '200':
+              description: Newly active context
+              content:
+                application/json:
+                  schema:
+                    $ref: '#/components/schemas/OperatingContext'
+            '403':
+              description: Requested transition is not authorized
+    components:
+      schemas:
+        ContextRole:
+          type: string
+          enum: [admin, developer]
+        ContextRequest:
+          type: object
+          required: [role, scope]
+          properties:
+            role:
+              $ref: '#/components/schemas/ContextRole'
+            scope:
+              $ref: '#/components/schemas/ContextScope'
+            spotlightRef:
+              type: string
+        ContextScope:
+          oneOf:
+            - type: object
+              required: [type, estateRef]
+              properties:
+                type:
+                  type: string
+                  enum: [estate]
+                estateRef:
+                  type: string
+            - type: object
+              required: [type, companyRef]
+              properties:
+                type:
+                  type: string
+                  enum: [company]
+                companyRef:
+                  type: string
+                workspaceRef:
+                  type: string
+                projectRef:
+                  type: string
+        OperatingContext:
+          type: object
+          required:
+            - principal
+            - role
+            - scope
+            - spotlightRef
+            - wardenDecisionRef
+            - authorityExpiresAt
+            - riverSessionRef
+          properties:
+            principal:
+              type: string
+              description: Stable DigitalMe principal. Does not change when context changes.
+            role:
+              $ref: '#/components/schemas/ContextRole'
+            scope:
+              $ref: '#/components/schemas/ContextScope'
+            spotlightRef:
+              type: string
+            wardenDecisionRef:
+              type: string
+            authorityExpiresAt:
+              type: string
+              format: date-time
+            riverSessionRef:
+              type: string
