@@ -1,0 +1,128 @@
+apiVersion: backstage.io/v1alpha1
+kind: Domain
+metadata:
+  name: bnr-commercial-runtime
+  title: BNR Commercial Runtime
+  description: Governance, client success, revenue assurance, evidence and settlement domain for BMP, Synnergyze, SILK and DigitalMe.
+spec:
+  owner: group:default/esomoire
+
+---
+apiVersion: backstage.io/v1alpha1
+kind: System
+metadata:
+  name: synnergyze-client-assurance-cockpit
+  title: Synnergyze Client Assurance Cockpit
+  description: Backstage system used to track per-client earning, expenses, SLA, evidence, wallet, card and settlement status.
+  tags:
+    - bnr
+    - synnergyze
+    - bmp
+    - silk
+    - digitalme
+spec:
+  owner: group:default/esomoire
+  domain: bnr-commercial-runtime
+
+---
+apiVersion: backstage.io/v1alpha1
+kind: Component
+metadata:
+  name: bmp-revenue-master
+  title: BMP Revenue Master
+  description: Revenue intake and CRM source for leads, orders, opportunities, listing performance and client earning records.
+  annotations:
+    bnr.esomoire.io/function: revenue-intake
+spec:
+  type: service
+  lifecycle: experimental
+  owner: group:default/esomoire
+  system: synnergyze-client-assurance-cockpit
+
+---
+apiVersion: backstage.io/v1alpha1
+kind: Component
+metadata:
+  name: synnergyze-service-assurance
+  title: Synnergyze Service Assurance
+  description: Ticketing, implementation, field operations, SLA monitoring and service success layer.
+  annotations:
+    bnr.esomoire.io/function: service-assurance
+spec:
+  type: service
+  lifecycle: experimental
+  owner: group:default/esomoire
+  system: synnergyze-client-assurance-cockpit
+
+---
+apiVersion: backstage.io/v1alpha1
+kind: Component
+metadata:
+  name: silk-wallet-settlement
+  title: SILK Wallet Settlement
+  description: Wallet, card, escrow, payout, refund, service credit and settlement record layer.
+  annotations:
+    bnr.esomoire.io/function: wallet-settlement
+spec:
+  type: service
+  lifecycle: experimental
+  owner: group:default/esomoire
+  system: synnergyze-client-assurance-cockpit
+
+---
+apiVersion: backstage.io/v1alpha1
+kind: Component
+metadata:
+  name: digitalme-client-identity
+  title: DigitalMe Client Identity
+  description: Identity, role, consent, wallet ownership, company/user switch and client continuity layer.
+  annotations:
+    bnr.esomoire.io/function: identity-spine
+spec:
+  type: service
+  lifecycle: experimental
+  owner: group:default/esomoire
+  system: synnergyze-client-assurance-cockpit
+
+---
+apiVersion: backstage.io/v1alpha1
+kind: Component
+metadata:
+  name: bnr-tax-mis
+  title: BNR Tax MIS
+  description: Commercial, settlement, civic/community and governance MIS view for invoice, GST, TDS/TCS review and audit readiness.
+  annotations:
+    bnr.esomoire.io/function: tax-mis
+spec:
+  type: service
+  lifecycle: experimental
+  owner: group:default/esomoire
+  system: synnergyze-client-assurance-cockpit
+
+---
+apiVersion: backstage.io/v1alpha1
+kind: Resource
+metadata:
+  name: client-success-pnl-card
+  title: Client Success P&L Card
+  description: Per-client earning, expense, net benefit, success ratio, SLA, evidence and settlement summary object.
+  annotations:
+    bnr.esomoire.io/object-type: client-success-pnl
+spec:
+  type: data
+  owner: group:default/esomoire
+  system: synnergyze-client-assurance-cockpit
+
+---
+apiVersion: backstage.io/v1alpha1
+kind: Resource
+metadata:
+  name: creators-believers-governance-record
+  title: Creators / Believers Governance Record
+  description: Record linking creator-originated problems and solutions to Believers Common guarantee, approval and stewardship status.
+  annotations:
+    bnr.esomoire.io/object-type: governance-record
+spec:
+  type: data
+  owner: group:default/esomoire
+  system: synnergyze-client-assurance-cockpit
