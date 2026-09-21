@@ -1,0 +1,29 @@
+{
+  "name": "@esomoire/backstage-plugin-synnergyze-context-common",
+  "version": "0.1.0",
+  "description": "Shared operating-context contracts for Synnergyze Backstage",
+  "private": true,
+  "backstage": {
+    "role": "common-library",
+    "pluginId": "synnergyze-context",
+    "pluginPackages": [
+      "@esomoire/backstage-plugin-synnergyze-context-common",
+      "@esomoire/backstage-plugin-synnergyze-context-node",
+      "@esomoire/backstage-plugin-synnergyze-context-backend"
+    ]
+  },
+  "license": "Apache-2.0",
+  "sideEffects": false,
+  "main": "src/index.ts",
+  "types": "src/index.ts",
+  "files": ["dist"],
+  "scripts": {
+    "build": "backstage-cli package build",
+    "clean": "backstage-cli package clean",
+    "lint": "backstage-cli package lint",
+    "test": "backstage-cli package test"
+  },
+  "devDependencies": {
+    "@backstage/cli": "workspace:^"
+  }
+}
