@@ -21,3 +21,10 @@ catalog:
             - Resource
             - API
             - Location
+    - type: file
+      target: catalog/vsr-operating-contexts.yaml
+      rules:
+        - allow:
+            - Component
+            - Resource
+            - API
