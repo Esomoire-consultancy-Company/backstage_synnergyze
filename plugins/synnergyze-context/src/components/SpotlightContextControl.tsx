@@ -209,7 +209,8 @@ export function SpotlightContextControl() {
   const fingerprint = requestFingerprint(request);
   const previewIsCurrent =
     preview?.authorized === true &&
-    previewFingerprint === fingerprint;
+    previewFingerprint === fingerprint &&
+    Date.parse(preview.decision.authorityExpiresAt) > Date.now();
 
   const formValid =
     role === 'admin'
@@ -224,6 +225,10 @@ export function SpotlightContextControl() {
 
   const applyEligibleOption = (optionId: string) => {
     setSelectedOptionId(optionId);
+    setPreview(undefined);
+    setPreviewFingerprint(undefined);
+    setDialogError(undefined);
+
     const option = options.find(candidate => candidate.id === optionId);
     if (!option) {
       return;
@@ -244,9 +249,6 @@ export function SpotlightContextControl() {
       setEstateRef('');
     }
 
-    setPreview(undefined);
-    setPreviewFingerprint(undefined);
-    setDialogError(undefined);
   };
 
   const handlePreview = async () => {
