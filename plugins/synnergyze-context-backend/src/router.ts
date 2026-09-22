@@ -85,8 +85,8 @@ export async function createRouter(
     });
 
     res.json({
-      discoveryAvailable: true,
-      options: contextOptions,
+      discoveryAvailable: contextOptions !== undefined,
+      options: contextOptions ?? [],
     });
   });
 
