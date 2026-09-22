@@ -138,6 +138,8 @@ spec:
                             type: string
             '403':
               description: Billing access is not authorized
+            '409':
+              description: Operating context changed during authorization; retry
       /context/resolve:
         post:
           operationId: resolveContext
