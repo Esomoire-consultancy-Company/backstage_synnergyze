@@ -23,5 +23,6 @@ describe('synnergyzeOperatingContextServiceRef', () => {
     expect(synnergyzeOperatingContextServiceRef.id).toBe(
       'synnergyze.operating-context',
     );
+    expect(synnergyzeOperatingContextServiceRef.scope).toBe('root');
   });
 });
