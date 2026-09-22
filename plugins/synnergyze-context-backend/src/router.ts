@@ -66,6 +66,14 @@ export async function createRouter(
   router.get('/billing/scope', async (req, res) => {
     const credentials = await httpAuth.credentials(req, { allow: ['user'] });
     const info = await userInfo.getUserInfo(credentials);
+    const contextBefore = await store.get(info.userEntityRef);
+
+    if (!contextBefore) {
+      res.status(403).json({
+        error: 'No active operating context',
+      });
+      return;
+    }
 
     const [decision] = await options.permissions.authorize(
       [{ permission: synnergyzeBillingReadPermission }],
@@ -80,9 +88,13 @@ export async function createRouter(
     }
 
     const context = await store.get(info.userEntityRef);
-    if (!context) {
-      res.status(403).json({
-        error: 'No active operating context',
+    if (
+      !context ||
+      context.wardenDecisionRef !== contextBefore.wardenDecisionRef ||
+      context.riverSessionRef !== contextBefore.riverSessionRef
+    ) {
+      res.status(409).json({
+        error: 'Operating context changed during billing authorization; retry',
       });
       return;
     }
