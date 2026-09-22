@@ -15,7 +15,6 @@
  */
 
 import { createBackendModule } from '@backstage/backend-plugin-api';
-import { DEFAULT_NAMESPACE } from '@backstage/catalog-model';
 import { githubAuthenticator } from '@backstage/plugin-auth-backend-module-github-provider';
 import {
   authProvidersExtensionPoint,
@@ -34,18 +33,16 @@ export default createBackendModule({
           factory: createOAuthProviderFactory({
             authenticator: githubAuthenticator,
             async signInResolver({ result: { fullProfile } }, ctx) {
-              const userId = fullProfile.username;
+              const userId = fullProfile.id;
               if (!userId) {
                 throw new Error(
-                  `GitHub user profile does not contain a username`,
+                  `GitHub user profile does not contain an immutable user ID`,
                 );
               }
 
               return ctx.signInWithCatalogUser({
-                entityRef: {
-                  kind: 'User',
-                  name: userId,
-                  namespace: DEFAULT_NAMESPACE,
+                annotations: {
+                  'github.com/user-id': String(userId),
                 },
               });
             },
