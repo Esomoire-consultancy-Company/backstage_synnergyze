@@ -33,7 +33,10 @@ import { SidebarSearchModal } from '@backstage/plugin-search';
 import { NotificationsSidebarItem } from '@backstage/plugin-notifications';
 import { UserSettingsSignInAvatar } from '@backstage/plugin-user-settings';
 import { makeStyles } from '@material-ui/core/styles';
-import { SpotlightContextControl } from '@esomoire/backstage-plugin-synnergyze-context';
+import {
+  SpotlightContextControl,
+  useOperatingContext,
+} from '@esomoire/backstage-plugin-synnergyze-context';
 
 const useSidebarLogoStyles = makeStyles({
   root: {
@@ -102,6 +105,10 @@ export const appModuleNav = createFrontendModule({
     NavContentBlueprint.make({
       params: {
         component: ({ navItems }) => {
+          const { context } = useOperatingContext();
+          const isAdmin = context?.role === 'admin';
+          const isDeveloper = context?.role === 'developer';
+
           const nav = navItems.withComponent(item => (
             <SidebarItem
               icon={() => item.icon}
@@ -120,10 +127,20 @@ export const appModuleNav = createFrontendModule({
                 <SidebarSearchModal />
               </SidebarGroup>
               <SidebarDivider />
-              <SidebarGroup label="Menu" icon={<MenuIcon />}>
+              <SidebarGroup
+                label={
+                  isAdmin
+                    ? 'Estate'
+                    : isDeveloper
+                      ? 'Workspace'
+                      : 'Menu'
+                }
+                icon={<MenuIcon />}
+              >
                 {nav.take('page:home')}
                 {nav.take('page:catalog')}
-                {nav.take('page:scaffolder')}
+                {isDeveloper ? nav.take('page:scaffolder') : null}
+                {isAdmin ? nav.take('page:devtools') : null}
                 <SidebarDivider />
                 <SidebarScrollWrapper>
                   {nav.rest({ sortBy: 'title' })}
@@ -138,7 +155,7 @@ export const appModuleNav = createFrontendModule({
                 to="/settings"
               >
                 <NotificationsSidebarItem />
-                {nav.take('page:devtools')}
+                {!isAdmin ? nav.take('page:devtools') : null}
                 {nav.take('page:user-settings')}
               </SidebarGroup>
             </Sidebar>
