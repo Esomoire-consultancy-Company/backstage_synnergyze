@@ -33,3 +33,6 @@ catalog:
       rules:
         - allow:
             - Resource
+
+permission:
+  enabled: true
