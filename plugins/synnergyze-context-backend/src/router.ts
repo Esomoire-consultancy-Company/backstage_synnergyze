@@ -63,6 +63,33 @@ export async function createRouter(
     res.json(context);
   });
 
+  router.get('/context/options', async (req, res) => {
+    if (!options.authorizer) {
+      res.status(503).json({
+        error: 'No Warden context authorizer is registered',
+      });
+      return;
+    }
+
+    if (!options.authorizer.listEligibleContexts) {
+      res.json({
+        discoveryAvailable: false,
+        options: [],
+      });
+      return;
+    }
+
+    const principal = await principalFor(req);
+    const contextOptions = await options.authorizer.listEligibleContexts({
+      principal,
+    });
+
+    res.json({
+      discoveryAvailable: true,
+      options: contextOptions,
+    });
+  });
+
   router.get('/billing/scope', async (req, res) => {
     const credentials = await httpAuth.credentials(req, { allow: ['user'] });
     const info = await userInfo.getUserInfo(credentials);
