@@ -1,17 +1,20 @@
 import {
   HttpAuthService,
+  PermissionsService,
   UserInfoService,
 } from '@backstage/backend-plugin-api';
 import {
   ContextTransitionEvent,
   OperatingContext,
   parseContextRequest,
+  synnergyzeBillingReadPermission,
 } from '@esomoire/backstage-plugin-synnergyze-context-common';
 import {
   RiverContextObserver,
   SynnergyzeOperatingContextService,
   WardenContextAuthorizer,
 } from '@esomoire/backstage-plugin-synnergyze-context-node';
+import { AuthorizeResult } from '@backstage/plugin-permission-common';
 import express from 'express';
 import Router from 'express-promise-router';
 import { randomUUID } from 'node:crypto';
@@ -20,6 +23,7 @@ export interface RouterOptions {
   httpAuth: HttpAuthService;
   userInfo: UserInfoService;
   store: SynnergyzeOperatingContextService;
+  permissions: PermissionsService;
   authorizer?: WardenContextAuthorizer;
   observer?: RiverContextObserver;
 }
@@ -57,6 +61,63 @@ export async function createRouter(
     }
 
     res.json(context);
+  });
+
+  router.get('/billing/scope', async (req, res) => {
+    const credentials = await httpAuth.credentials(req, { allow: ['user'] });
+    const info = await userInfo.getUserInfo(credentials);
+
+    const [decision] = await options.permissions.authorize(
+      [{ permission: synnergyzeBillingReadPermission }],
+      { credentials },
+    );
+
+    if (!decision || decision.result !== AuthorizeResult.ALLOW) {
+      res.status(403).json({
+        error: 'Billing access is not authorized in the active operating context',
+      });
+      return;
+    }
+
+    const context = await store.get(info.userEntityRef);
+    if (!context) {
+      res.status(403).json({
+        error: 'No active operating context',
+      });
+      return;
+    }
+
+    if (context.role === 'admin' && context.scope.type === 'estate') {
+      res.json({
+        mode: 'estate',
+        estateRef: context.scope.estateRef,
+        spotlightRef: context.spotlightRef,
+        wardenDecisionRef: context.wardenDecisionRef,
+        riverSessionRef: context.riverSessionRef,
+      });
+      return;
+    }
+
+    if (context.role === 'developer' && context.scope.type === 'company') {
+      res.json({
+        mode: 'company',
+        companyRef: context.scope.companyRef,
+        ...(context.scope.workspaceRef
+          ? { workspaceRef: context.scope.workspaceRef }
+          : {}),
+        ...(context.scope.projectRef
+          ? { projectRef: context.scope.projectRef }
+          : {}),
+        spotlightRef: context.spotlightRef,
+        wardenDecisionRef: context.wardenDecisionRef,
+        riverSessionRef: context.riverSessionRef,
+      });
+      return;
+    }
+
+    res.status(403).json({
+      error: 'Active operating context has an invalid billing scope',
+    });
   });
 
   router.post('/context/resolve', async (req, res) => {
