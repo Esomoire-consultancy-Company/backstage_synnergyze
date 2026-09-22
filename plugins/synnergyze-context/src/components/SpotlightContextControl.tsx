@@ -312,7 +312,10 @@ export function SpotlightContextControl() {
 
   return (
     <>
-      <Tooltip title={`${activeLabel} — open Spotlight operating context`} placement="right">
+      <Tooltip
+        title={`${activeLabel} — open Spotlight operating context`}
+        placement="right"
+      >
         <Button
           className={classes.trigger}
           startIcon={<FlareIcon />}
@@ -488,7 +491,7 @@ export function SpotlightContextControl() {
                 value={companyRef}
                 onChange={event => {
                   setCompanyRef(event.target.value);
-                setSelectedOptionId('');
+                  setSelectedOptionId('');
                   setPreview(undefined);
                   setPreviewFingerprint(undefined);
                 }}
@@ -502,7 +505,7 @@ export function SpotlightContextControl() {
                 value={workspaceRef}
                 onChange={event => {
                   setWorkspaceRef(event.target.value);
-                setSelectedOptionId('');
+                  setSelectedOptionId('');
                   setPreview(undefined);
                   setPreviewFingerprint(undefined);
                 }}
@@ -516,7 +519,7 @@ export function SpotlightContextControl() {
                 value={projectRef}
                 onChange={event => {
                   setProjectRef(event.target.value);
-                setSelectedOptionId('');
+                  setSelectedOptionId('');
                   setPreview(undefined);
                   setPreviewFingerprint(undefined);
                 }}
@@ -533,7 +536,7 @@ export function SpotlightContextControl() {
             value={spotlightRef}
             onChange={event => {
               setSpotlightRef(event.target.value);
-                setSelectedOptionId('');
+              setSelectedOptionId('');
               setPreview(undefined);
               setPreviewFingerprint(undefined);
             }}
