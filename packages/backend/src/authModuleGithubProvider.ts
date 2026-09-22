@@ -15,6 +15,7 @@
  */
 
 import { createBackendModule } from '@backstage/backend-plugin-api';
+import { stringifyEntityRef } from '@backstage/catalog-model';
 import { githubAuthenticator } from '@backstage/plugin-auth-backend-module-github-provider';
 import {
   authProvidersExtensionPoint,
@@ -40,9 +41,30 @@ export default createBackendModule({
                 );
               }
 
-              return ctx.signInWithCatalogUser({
+              const { entity } = await ctx.findCatalogUser({
                 annotations: {
                   'github.com/user-id': String(userId),
+                },
+              });
+
+              const userEntityRef = stringifyEntityRef(entity);
+              const { ownershipEntityRefs } =
+                await ctx.resolveOwnershipEntityRefs(entity);
+              const developerGroup =
+                'group:default/synnergyze-developers';
+
+              if (!ownershipEntityRefs.includes(developerGroup)) {
+                throw new Error(
+                  `Backstage user ${userEntityRef} is not provisioned for the Synnergyze developer context`,
+                );
+              }
+
+              return ctx.issueToken({
+                claims: {
+                  sub: userEntityRef,
+                  ent: [userEntityRef, developerGroup],
+                  'vsr.context': 'developer',
+                  'vsr.availableContexts': ['developer', 'admin'],
                 },
               });
             },
