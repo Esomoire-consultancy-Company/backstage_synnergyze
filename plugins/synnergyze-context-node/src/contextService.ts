@@ -51,7 +51,10 @@ class DefaultSynnergyzeOperatingContextService
 
   async set(context: OperatingContext): Promise<void> {
     assertContextIsActive(context);
-    this.#contexts.set(context.principal, { ...context });
+    this.#contexts.set(context.principal, {
+      ...context,
+      scope: { ...context.scope },
+    });
   }
 
   async clear(principal: string): Promise<void> {
