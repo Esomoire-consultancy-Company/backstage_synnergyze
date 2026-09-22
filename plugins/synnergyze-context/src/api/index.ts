@@ -18,7 +18,7 @@ import { createApiRef } from '@backstage/frontend-plugin-api';
 import { SynnergyzeContextApi } from './types';
 
 export const synnergyzeContextApiRef = createApiRef<SynnergyzeContextApi>().with({
-  id: 'operating-context',
+  id: 'synnergyze-context.operating-context',
   pluginId: 'synnergyze-context',
 });
 
