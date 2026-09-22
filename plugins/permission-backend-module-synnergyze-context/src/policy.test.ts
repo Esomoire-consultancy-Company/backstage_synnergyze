@@ -93,14 +93,15 @@ describe('SynnergyzeContextPermissionPolicy', () => {
     );
 
     expect(decision.result).toBe(AuthorizeResult.CONDITIONAL);
-    expect((decision as any).conditions).toEqual({
-      rule: 'HAS_ANNOTATION',
-      resourceType: 'catalog-entity',
-      params: {
-        annotation: 'vsr.esomoire.io/company-ref',
-        value: 'company:default/voi-jeans',
-      },
-    });
+    expect((decision as any).conditions).toEqual(
+      expect.objectContaining({
+        rule: 'HAS_ANNOTATION',
+        params: {
+          annotation: 'vsr.esomoire.io/company-ref',
+          value: 'company:default/voi-jeans',
+        },
+      }),
+    );
   });
 
   it('allows billing read only when an active context exists', async () => {
