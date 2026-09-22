@@ -15,3 +15,4 @@
  */
 
 export { SpotlightContextControl } from './SpotlightContextControl';
+export { SpotlightContextRibbon } from './SpotlightContextRibbon';
