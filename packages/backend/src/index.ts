@@ -55,7 +55,7 @@ backend.add(import('@backstage/plugin-events-backend'));
 backend.add(import('@backstage/plugin-devtools-backend'));
 backend.add(import('@backstage/plugin-kubernetes-backend'));
 backend.add(
-  import('@backstage/plugin-permission-backend-module-allow-all-policy'),
+  import('@esomoire/backstage-plugin-permission-backend-module-synnergyze-context'),
 );
 backend.add(import('@backstage/plugin-permission-backend'));
 backend.add(import('@backstage/plugin-proxy-backend'));
