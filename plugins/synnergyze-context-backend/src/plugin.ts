@@ -58,17 +58,15 @@ export const synnergyzeContextPlugin = createBackendPlugin({
 
     env.registerInit({
       deps: {
-        auth: coreServices.auth,
         httpAuth: coreServices.httpAuth,
         userInfo: coreServices.userInfo,
         httpRouter: coreServices.httpRouter,
       },
-      async init({ auth, httpAuth, userInfo, httpRouter }) {
+      async init({ httpAuth, userInfo, httpRouter }) {
         const store = new InMemoryOperatingContextStore();
 
         httpRouter.use(
           await createRouter({
-            auth,
             httpAuth,
             userInfo,
             store,
