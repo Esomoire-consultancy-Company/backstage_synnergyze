@@ -1,0 +1,10 @@
+apiVersion: backstage.io/v1alpha1
+kind: Component
+metadata:
+  name: esomoire-backstage-plugin-synnergyze-context-node
+  title: '@esomoire/backstage-plugin-synnergyze-context-node'
+  description: Backend extension points for Synnergyze context authorization and observation
+spec:
+  lifecycle: experimental
+  type: backstage-node-library
+  owner: esomoire

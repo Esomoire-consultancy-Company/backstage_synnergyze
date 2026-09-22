@@ -1,0 +1,10 @@
+apiVersion: backstage.io/v1alpha1
+kind: Component
+metadata:
+  name: esomoire-backstage-plugin-synnergyze-context-backend-module-alpha
+  title: '@esomoire/backstage-plugin-synnergyze-context-backend-module-alpha'
+  description: Alpha HTTP adapters connecting the context broker to Warden and River
+spec:
+  lifecycle: experimental
+  type: backstage-backend-plugin-module
+  owner: esomoire

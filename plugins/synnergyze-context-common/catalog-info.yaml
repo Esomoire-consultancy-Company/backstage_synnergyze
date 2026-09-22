@@ -1,0 +1,10 @@
+apiVersion: backstage.io/v1alpha1
+kind: Component
+metadata:
+  name: esomoire-backstage-plugin-synnergyze-context-common
+  title: '@esomoire/backstage-plugin-synnergyze-context-common'
+  description: Shared operating-context contracts for Synnergyze Backstage
+spec:
+  lifecycle: experimental
+  type: backstage-common-library
+  owner: esomoire

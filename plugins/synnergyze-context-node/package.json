@@ -1,0 +1,32 @@
+{
+  "name": "@esomoire/backstage-plugin-synnergyze-context-node",
+  "version": "0.1.0",
+  "description": "Backend extension points for Synnergyze operating-context authorization and observation",
+  "private": true,
+  "backstage": {
+    "role": "node-library",
+    "pluginId": "synnergyze-context",
+    "pluginPackages": [
+      "@esomoire/backstage-plugin-synnergyze-context-common",
+      "@esomoire/backstage-plugin-synnergyze-context-node",
+      "@esomoire/backstage-plugin-synnergyze-context-backend"
+    ]
+  },
+  "license": "Apache-2.0",
+  "main": "src/index.ts",
+  "types": "src/index.ts",
+  "files": ["dist"],
+  "scripts": {
+    "build": "backstage-cli package build",
+    "clean": "backstage-cli package clean",
+    "lint": "backstage-cli package lint",
+    "test": "backstage-cli package test"
+  },
+  "dependencies": {
+    "@backstage/backend-plugin-api": "workspace:^",
+    "@esomoire/backstage-plugin-synnergyze-context-common": "workspace:^"
+  },
+  "devDependencies": {
+    "@backstage/cli": "workspace:^"
+  }
+}

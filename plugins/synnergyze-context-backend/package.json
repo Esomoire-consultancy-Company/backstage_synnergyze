@@ -1,0 +1,38 @@
+{
+  "name": "@esomoire/backstage-plugin-synnergyze-context-backend",
+  "version": "0.1.0",
+  "description": "Backend broker for Warden-authorized, River-observed Synnergyze operating contexts",
+  "private": true,
+  "backstage": {
+    "role": "backend-plugin",
+    "pluginId": "synnergyze-context",
+    "pluginPackages": [
+      "@esomoire/backstage-plugin-synnergyze-context-common",
+      "@esomoire/backstage-plugin-synnergyze-context-node",
+      "@esomoire/backstage-plugin-synnergyze-context-backend"
+    ]
+  },
+  "license": "Apache-2.0",
+  "main": "src/index.ts",
+  "types": "src/index.ts",
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "build": "backstage-cli package build",
+    "clean": "backstage-cli package clean",
+    "lint": "backstage-cli package lint",
+    "test": "backstage-cli package test"
+  },
+  "dependencies": {
+    "@backstage/backend-plugin-api": "workspace:^",
+    "@esomoire/backstage-plugin-synnergyze-context-common": "workspace:^",
+    "@esomoire/backstage-plugin-synnergyze-context-node": "workspace:^",
+    "express": "^4.22.0",
+    "express-promise-router": "^4.1.0"
+  },
+  "devDependencies": {
+    "@backstage/cli": "workspace:^",
+    "@types/express": "^4.17.6"
+  }
+}
