@@ -1,0 +1,30 @@
+apiVersion: backstage.io/v1alpha1
+kind: Resource
+metadata:
+  name: voi-jeans-billing-account
+  title: VOI Jeans Billing Account
+  description: Company-scoped billing proof resource for the R0.3 Developer context.
+  annotations:
+    vsr.esomoire.io/estate-ref: estate:default/alpha
+    vsr.esomoire.io/company-ref: company:default/voi-jeans
+    vsr.esomoire.io/resource-class: billing
+spec:
+  type: billing-account
+  owner: group:default/esomoire
+  system: synnergyze-client-assurance-cockpit
+
+---
+apiVersion: backstage.io/v1alpha1
+kind: Resource
+metadata:
+  name: esomoire-billing-account
+  title: Esomoire Billing Account
+  description: Second company-scoped billing resource used to prove Developer isolation.
+  annotations:
+    vsr.esomoire.io/estate-ref: estate:default/alpha
+    vsr.esomoire.io/company-ref: company:default/esomoire
+    vsr.esomoire.io/resource-class: billing
+spec:
+  type: billing-account
+  owner: group:default/esomoire
+  system: synnergyze-client-assurance-cockpit
