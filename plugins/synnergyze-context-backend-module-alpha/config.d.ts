@@ -4,6 +4,7 @@ export interface Config {
       warden?: {
         baseUrl?: string;
         authorizePath?: string;
+        optionsPath?: string;
         /**
          * Optional backend-only bearer token.
          * @visibility secret
