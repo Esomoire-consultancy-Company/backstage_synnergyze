@@ -1,0 +1,33 @@
+{
+  "name": "@esomoire/backstage-plugin-permission-backend-module-synnergyze-context",
+  "version": "0.1.0",
+  "description": "Backstage permission policy bound to Warden-authorized Synnergyze operating context",
+  "private": true,
+  "backstage": {
+    "role": "backend-plugin-module",
+    "pluginId": "permission",
+    "pluginPackage": "@backstage/plugin-permission-backend"
+  },
+  "license": "Apache-2.0",
+  "main": "src/index.ts",
+  "types": "src/index.ts",
+  "files": ["dist"],
+  "scripts": {
+    "build": "backstage-cli package build",
+    "clean": "backstage-cli package clean",
+    "lint": "backstage-cli package lint",
+    "test": "backstage-cli package test"
+  },
+  "dependencies": {
+    "@backstage/backend-plugin-api": "workspace:^",
+    "@backstage/plugin-catalog-backend": "workspace:^",
+    "@backstage/plugin-catalog-common": "workspace:^",
+    "@backstage/plugin-permission-common": "workspace:^",
+    "@backstage/plugin-permission-node": "workspace:^",
+    "@esomoire/backstage-plugin-synnergyze-context-common": "workspace:^",
+    "@esomoire/backstage-plugin-synnergyze-context-node": "workspace:^"
+  },
+  "devDependencies": {
+    "@backstage/cli": "workspace:^"
+  }
+}
