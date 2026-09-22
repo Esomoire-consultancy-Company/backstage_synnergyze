@@ -26,6 +26,7 @@
   },
   "dependencies": {
     "@backstage/backend-plugin-api": "workspace:^",
+    "@backstage/plugin-permission-common": "workspace:^",
     "@esomoire/backstage-plugin-synnergyze-context-common": "workspace:^",
     "@esomoire/backstage-plugin-synnergyze-context-node": "workspace:^",
     "express": "^4.22.0",

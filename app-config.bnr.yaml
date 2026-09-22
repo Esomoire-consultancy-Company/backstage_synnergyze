@@ -28,3 +28,11 @@ catalog:
             - Component
             - Resource
             - API
+    - type: file
+      target: catalog/vsr-company-billing-proof.yaml
+      rules:
+        - allow:
+            - Resource
+
+permission:
+  enabled: true

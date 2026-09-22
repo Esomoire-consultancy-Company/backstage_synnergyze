@@ -7,9 +7,9 @@ import {
   synnergyzeContextAuthorizationExtensionPoint,
   synnergyzeContextObservationExtensionPoint,
   WardenContextAuthorizer,
+  synnergyzeOperatingContextServiceRef,
 } from '@esomoire/backstage-plugin-synnergyze-context-node';
 import { createRouter } from './router';
-import { InMemoryOperatingContextStore } from './store';
 
 class ContextAuthorizationExtensionPointImpl {
   #authorizer: WardenContextAuthorizer | undefined;
@@ -61,15 +61,22 @@ export const synnergyzeContextPlugin = createBackendPlugin({
         httpAuth: coreServices.httpAuth,
         userInfo: coreServices.userInfo,
         httpRouter: coreServices.httpRouter,
+        contextService: synnergyzeOperatingContextServiceRef,
+        permissions: coreServices.permissions,
       },
-      async init({ httpAuth, userInfo, httpRouter }) {
-        const store = new InMemoryOperatingContextStore();
-
+      async init({
+        httpAuth,
+        userInfo,
+        httpRouter,
+        contextService,
+        permissions,
+      }) {
         httpRouter.use(
           await createRouter({
             httpAuth,
             userInfo,
-            store,
+            store: contextService,
+            permissions,
             authorizer: authorization.authorizer,
             observer: observation.observer,
           }),

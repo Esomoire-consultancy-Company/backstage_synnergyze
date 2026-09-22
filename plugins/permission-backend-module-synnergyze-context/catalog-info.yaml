@@ -1,0 +1,10 @@
+apiVersion: backstage.io/v1alpha1
+kind: Component
+metadata:
+  name: esomoire-backstage-plugin-permission-backend-module-synnergyze-context
+  title: '@esomoire/backstage-plugin-permission-backend-module-synnergyze-context'
+  description: Permission policy bound to active Warden-authorized Synnergyze context
+spec:
+  lifecycle: experimental
+  type: backstage-backend-plugin-module
+  owner: esomoire

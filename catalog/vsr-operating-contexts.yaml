@@ -93,6 +93,53 @@ spec:
                 application/json:
                   schema:
                     $ref: '#/components/schemas/OperatingContext'
+      /billing/scope:
+        get:
+          operationId: getBillingScope
+          description: Resolve the permission-enforced billing query scope for the active operating context.
+          responses:
+            '200':
+              description: Authorized Estate or company billing query scope
+              content:
+                application/json:
+                  schema:
+                    oneOf:
+                      - type: object
+                        required: [mode, estateRef, spotlightRef, wardenDecisionRef, riverSessionRef]
+                        properties:
+                          mode:
+                            type: string
+                            enum: [estate]
+                          estateRef:
+                            type: string
+                          spotlightRef:
+                            type: string
+                          wardenDecisionRef:
+                            type: string
+                          riverSessionRef:
+                            type: string
+                      - type: object
+                        required: [mode, companyRef, spotlightRef, wardenDecisionRef, riverSessionRef]
+                        properties:
+                          mode:
+                            type: string
+                            enum: [company]
+                          companyRef:
+                            type: string
+                          workspaceRef:
+                            type: string
+                          projectRef:
+                            type: string
+                          spotlightRef:
+                            type: string
+                          wardenDecisionRef:
+                            type: string
+                          riverSessionRef:
+                            type: string
+            '403':
+              description: Billing access is not authorized
+            '409':
+              description: Operating context changed during authorization; retry
       /context/resolve:
         post:
           operationId: resolveContext
