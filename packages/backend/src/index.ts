@@ -75,4 +75,8 @@ backend.add(import('@backstage/plugin-notifications-backend'));
 backend.add(import('@backstage/plugin-events-backend-module-google-pubsub'));
 backend.add(import('@backstage/plugin-mcp-actions-backend'));
 backend.add(import('@backstage/plugin-user-settings-backend'));
+backend.add(import('@esomoire/backstage-plugin-synnergyze-context-backend'));
+backend.add(
+  import('@esomoire/backstage-plugin-synnergyze-context-backend-module-alpha'),
+);
 backend.start();
