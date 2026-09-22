@@ -19,6 +19,7 @@ import {
   FetchApi,
 } from '@backstage/frontend-plugin-api';
 import {
+  ContextOptionsResponse,
   ContextRequest,
   OperatingContext,
   SynnergyzeContextApi,
@@ -53,6 +54,30 @@ export class SynnergyzeContextClient implements SynnergyzeContextApi {
     }
 
     return response.json() as Promise<OperatingContext>;
+  }
+
+  async listEligibleContexts(): Promise<ContextOptionsResponse> {
+    const response = await this.options.fetchApi.fetch(
+      `${await this.baseUrl()}/context/options`,
+    );
+
+    if (!response.ok) {
+      throw new Error(
+        `Unable to load eligible contexts (HTTP ${response.status})`,
+      );
+    }
+
+    const body = (await response.json()) as unknown;
+    if (
+      !body ||
+      typeof body !== 'object' ||
+      typeof (body as Record<string, unknown>).discoveryAvailable !== 'boolean' ||
+      !Array.isArray((body as Record<string, unknown>).options)
+    ) {
+      throw new Error('Invalid eligible-context response');
+    }
+
+    return body as ContextOptionsResponse;
   }
 
   async resolveContext(
