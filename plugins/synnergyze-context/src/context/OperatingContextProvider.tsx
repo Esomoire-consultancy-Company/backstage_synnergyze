@@ -27,6 +27,7 @@ import { useApi } from '@backstage/frontend-plugin-api';
 import {
   ContextRequest,
   OperatingContext,
+  OperatingContextOption,
   WardenAuthorizationResult,
   synnergyzeContextApiRef,
 } from '../api';
@@ -35,7 +36,12 @@ type OperatingContextState = {
   context?: OperatingContext;
   loading: boolean;
   error?: string;
+  options: OperatingContextOption[];
+  optionsLoading: boolean;
+  optionsDiscoveryAvailable?: boolean;
+  optionsError?: string;
   refresh(): Promise<void>;
+  refreshOptions(): Promise<void>;
   resolve(request: ContextRequest): Promise<WardenAuthorizationResult>;
   transition(request: ContextRequest): Promise<OperatingContext>;
 };
@@ -45,11 +51,16 @@ const OperatingContextReactContext =
 
 export function OperatingContextProvider({
   children,
-}: PropsWithChildren<{}>) {
+}: PropsWithChildren) {
   const api = useApi(synnergyzeContextApiRef);
   const [context, setContext] = useState<OperatingContext>();
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string>();
+  const [options, setOptions] = useState<OperatingContextOption[]>([]);
+  const [optionsLoading, setOptionsLoading] = useState(false);
+  const [optionsDiscoveryAvailable, setOptionsDiscoveryAvailable] =
+    useState<boolean>();
+  const [optionsError, setOptionsError] = useState<string>();
 
   const refresh = useCallback(async () => {
     try {
@@ -72,6 +83,24 @@ export function OperatingContextProvider({
     return () => window.clearInterval(timer);
   }, [refresh]);
 
+  const refreshOptions = useCallback(async () => {
+    setOptionsLoading(true);
+    try {
+      const result = await api.listEligibleContexts();
+      setOptions(result.options);
+      setOptionsDiscoveryAvailable(result.discoveryAvailable);
+      setOptionsError(undefined);
+    } catch (e) {
+      setOptions([]);
+      setOptionsDiscoveryAvailable(undefined);
+      setOptionsError(
+        e instanceof Error ? e.message : 'Unable to load eligible contexts',
+      );
+    } finally {
+      setOptionsLoading(false);
+    }
+  }, [api]);
+
   const resolve = useCallback(
     (request: ContextRequest) => api.resolveContext(request),
     [api],
@@ -92,11 +121,28 @@ export function OperatingContextProvider({
       context,
       loading,
       error,
+      options,
+      optionsLoading,
+      optionsDiscoveryAvailable,
+      optionsError,
       refresh,
+      refreshOptions,
       resolve,
       transition,
     }),
-    [context, loading, error, refresh, resolve, transition],
+    [
+      context,
+      loading,
+      error,
+      options,
+      optionsLoading,
+      optionsDiscoveryAvailable,
+      optionsError,
+      refresh,
+      refreshOptions,
+      resolve,
+      transition,
+    ],
   );
 
   return (
