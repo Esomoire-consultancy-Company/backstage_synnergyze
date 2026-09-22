@@ -83,6 +83,24 @@ export function OperatingContextProvider({
     return () => window.clearInterval(timer);
   }, [refresh]);
 
+  useEffect(() => {
+    if (!context) {
+      return undefined;
+    }
+
+    const expiresAt = Date.parse(context.authorityExpiresAt);
+    if (!Number.isFinite(expiresAt)) {
+      return undefined;
+    }
+
+    const delay = Math.max(0, expiresAt - Date.now()) + 100;
+    const timer = window.setTimeout(() => {
+      void refresh();
+    }, delay);
+
+    return () => window.clearTimeout(timer);
+  }, [context, refresh]);
+
   const refreshOptions = useCallback(async () => {
     setOptionsLoading(true);
     try {
