@@ -1,6 +1,7 @@
 import {
   ContextRequest,
   ContextTransitionEvent,
+  OperatingContextOption,
   parseContextRequest,
   RiverTransitionReceipt,
   WardenAuthorizationResult,
@@ -14,6 +15,7 @@ import {
 export type HttpProviderOptions = {
   baseUrl: string;
   path: string;
+  listPath?: string;
   bearerToken?: string;
 };
 
@@ -41,6 +43,27 @@ function requireString(value: unknown, field: string): string {
     throw new Error(`${field} must be a non-empty string`);
   }
   return value;
+}
+
+function parseContextOption(value: unknown): OperatingContextOption {
+  if (!value || typeof value !== 'object') {
+    throw new Error('Warden context option must be an object');
+  }
+
+  const input = value as Record<string, unknown>;
+  const request = parseContextRequest({
+    role: input.role,
+    scope: input.scope,
+    spotlightRef: input.spotlightRef,
+  });
+
+  return {
+    id: requireString(input.id, 'contextOption.id'),
+    label: requireString(input.label, 'contextOption.label'),
+    role: request.role,
+    scope: request.scope,
+    ...(request.spotlightRef ? { spotlightRef: request.spotlightRef } : {}),
+  };
 }
 
 function parseWardenDecision(value: unknown): WardenContextDecision {
@@ -85,6 +108,50 @@ export class HttpWardenContextAuthorizer
 
   constructor(options: HttpProviderOptions) {
     this.#options = options;
+  }
+
+  async listEligibleContexts(input: {
+    principal: string;
+  }): Promise<OperatingContextOption[]> {
+    if (!this.#options.listPath) {
+      return [];
+    }
+
+    const url = new URL(
+      endpointFor(this.#options.baseUrl, this.#options.listPath),
+    );
+    url.searchParams.set('principal', input.principal);
+
+    const response = await fetch(url, {
+      method: 'GET',
+      headers: headers(this.#options.bearerToken),
+    });
+
+    if (response.status === 404 || response.status === 501) {
+      return [];
+    }
+
+    if (!response.ok) {
+      throw new Error(
+        `Warden context discovery failed with HTTP ${response.status}`,
+      );
+    }
+
+    const body = await readJson(response);
+    const rawOptions =
+      Array.isArray(body)
+        ? body
+        : body &&
+            typeof body === 'object' &&
+            Array.isArray((body as Record<string, unknown>).options)
+          ? (body as Record<string, unknown>).options
+          : undefined;
+
+    if (!rawOptions) {
+      throw new Error('Warden context discovery response must contain options');
+    }
+
+    return rawOptions.map(parseContextOption);
   }
 
   async authorize(input: {
