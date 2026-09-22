@@ -134,7 +134,7 @@ Admin scope remains Estate-based.
 
 ## Context refresh
 
-The frontend reloads the active context periodically and after a successful transition.
+The frontend reloads the active context periodically, after a successful transition, and at the exact local Warden TTL expiry boundary.
 
 The backend context service remains TTL-aware; an expired context disappears on read.
 
@@ -147,7 +147,10 @@ R0.4 installs:
 - the Synnergyze frontend plugin,
 - an app-root context wrapper,
 - the Spotlight ribbon,
-- the sidebar Spotlight control.
+- the sidebar Spotlight control,
+- context-aware navigation.
+
+Navigation is presentation, not authorization. In Admin context the main operating group is labelled **Estate** and exposes Estate-oriented tooling; in Developer context it is labelled **Workspace** and exposes the scoped build/scaffolder surface. R0.3 permissions remain the enforcement boundary even if a route is reached directly.
 
 This avoids editing Backstage core UI primitives.
 
@@ -164,7 +167,9 @@ R0.4 is accepted when:
 7. expired preview cannot activate,
 8. transition is re-authorized server-side and River-observed,
 9. successful transition refreshes the shared frontend state,
-10. frontend display failure cannot widen backend permissions.
+10. frontend display failure cannot widen backend permissions,
+11. navigation visibly reflects Admin/Developer context without becoming the authorization layer,
+12. frontend state refreshes at Warden authority expiry rather than waiting only for the polling interval.
 
 ## Build note
 
