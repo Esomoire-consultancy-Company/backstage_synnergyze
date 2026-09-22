@@ -24,8 +24,10 @@ export const synnergyzeContextApiRef = createApiRef<SynnergyzeContextApi>().with
 
 export { SynnergyzeContextClient } from './SynnergyzeContextClient';
 export type {
+  ContextOptionsResponse,
   ContextRequest,
   OperatingContext,
+  OperatingContextOption,
   SynnergyzeContextApi,
   WardenAuthorizationResult,
 } from './types';
