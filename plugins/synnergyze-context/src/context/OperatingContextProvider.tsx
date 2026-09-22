@@ -21,6 +21,7 @@ import {
   useContext,
   useEffect,
   useMemo,
+  useRef,
   useState,
 } from 'react';
 import { useApi } from '@backstage/frontend-plugin-api';
@@ -49,6 +50,29 @@ type OperatingContextState = {
 const OperatingContextReactContext =
   createContext<OperatingContextState | undefined>(undefined);
 
+function sameContext(
+  left: OperatingContext | undefined,
+  right: OperatingContext | undefined,
+): boolean {
+  if (left === right) {
+    return true;
+  }
+
+  if (!left || !right) {
+    return false;
+  }
+
+  return (
+    left.principal === right.principal &&
+    left.role === right.role &&
+    JSON.stringify(left.scope) === JSON.stringify(right.scope) &&
+    left.spotlightRef === right.spotlightRef &&
+    left.wardenDecisionRef === right.wardenDecisionRef &&
+    left.authorityExpiresAt === right.authorityExpiresAt &&
+    left.riverSessionRef === right.riverSessionRef
+  );
+}
+
 export function OperatingContextProvider({
   children,
 }: PropsWithChildren) {
@@ -61,16 +85,30 @@ export function OperatingContextProvider({
   const [optionsDiscoveryAvailable, setOptionsDiscoveryAvailable] =
     useState<boolean>();
   const [optionsError, setOptionsError] = useState<string>();
+  const contextRequestVersion = useRef(0);
+  const optionsRequestVersion = useRef(0);
 
   const refresh = useCallback(async () => {
+    const requestVersion = ++contextRequestVersion.current;
+
     try {
       const next = await api.getActiveContext();
-      setContext(next);
+      if (requestVersion !== contextRequestVersion.current) {
+        return;
+      }
+
+      setContext(previous => (sameContext(previous, next) ? previous : next));
       setError(undefined);
     } catch (e) {
+      if (requestVersion !== contextRequestVersion.current) {
+        return;
+      }
+
       setError(e instanceof Error ? e.message : 'Unable to load context');
     } finally {
-      setLoading(false);
+      if (requestVersion === contextRequestVersion.current) {
+        setLoading(false);
+      }
     }
   }, [api]);
 
@@ -102,20 +140,32 @@ export function OperatingContextProvider({
   }, [context, refresh]);
 
   const refreshOptions = useCallback(async () => {
+    const requestVersion = ++optionsRequestVersion.current;
     setOptionsLoading(true);
+
     try {
       const result = await api.listEligibleContexts();
+      if (requestVersion !== optionsRequestVersion.current) {
+        return;
+      }
+
       setOptions(result.options);
       setOptionsDiscoveryAvailable(result.discoveryAvailable);
       setOptionsError(undefined);
     } catch (e) {
+      if (requestVersion !== optionsRequestVersion.current) {
+        return;
+      }
+
       setOptions([]);
       setOptionsDiscoveryAvailable(undefined);
       setOptionsError(
         e instanceof Error ? e.message : 'Unable to load eligible contexts',
       );
     } finally {
-      setOptionsLoading(false);
+      if (requestVersion === optionsRequestVersion.current) {
+        setOptionsLoading(false);
+      }
     }
   }, [api]);
 
@@ -126,9 +176,16 @@ export function OperatingContextProvider({
 
   const transition = useCallback(
     async (request: ContextRequest) => {
+      // Invalidate refreshes that started before this transition.
+      contextRequestVersion.current += 1;
+
       const next = await api.transitionContext(request);
-      setContext(next);
+
+      // Invalidate refreshes that may have started while transition was pending.
+      contextRequestVersion.current += 1;
+      setContext(previous => (sameContext(previous, next) ? previous : next));
       setError(undefined);
+      setLoading(false);
       return next;
     },
     [api],
