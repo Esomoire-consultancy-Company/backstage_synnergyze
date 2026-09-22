@@ -14,7 +14,7 @@ export interface WardenContextAuthorizer {
 
   listEligibleContexts?(input: {
     principal: string;
-  }): Promise<OperatingContextOption[]>;
+  }): Promise<OperatingContextOption[] | undefined>;
 }
 
 export interface RiverContextObserver {
