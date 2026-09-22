@@ -26,15 +26,14 @@ import { useOperatingContext } from '../context';
 
 const useStyles = makeStyles(theme => ({
   root: {
-    position: 'fixed',
-    top: theme.spacing(1),
-    right: theme.spacing(2),
-    zIndex: theme.zIndex.modal - 1,
+    width: '100%',
+    flexShrink: 0,
     display: 'flex',
+    justifyContent: 'flex-end',
     gap: theme.spacing(1),
     alignItems: 'center',
-    padding: theme.spacing(0.5),
-    borderRadius: theme.shape.borderRadius,
+    padding: theme.spacing(0.5, 2),
+    borderRadius: 0,
   },
 }));
 
@@ -44,7 +43,12 @@ export function SpotlightContextRibbon() {
 
   if (loading) {
     return (
-      <Paper className={classes.root} elevation={2}>
+      <Paper
+        className={classes.root}
+        elevation={2}
+        role="status"
+        aria-live="polite"
+      >
         <Chip
           icon={<FlareIcon />}
           label="Spotlight • loading"
@@ -56,7 +60,12 @@ export function SpotlightContextRibbon() {
 
   if (!context) {
     return (
-      <Paper className={classes.root} elevation={2}>
+      <Paper
+        className={classes.root}
+        elevation={2}
+        role="status"
+        aria-live="polite"
+      >
         <Tooltip title={error ?? 'No active Warden-authorized context'}>
           <Chip
             icon={<WarningIcon />}
@@ -76,20 +85,33 @@ export function SpotlightContextRibbon() {
         context.scope.companyRef;
 
   const expired = Date.parse(context.authorityExpiresAt) <= Date.now();
-  const degraded = Boolean(error) || expired;
+  const status = expired ? 'EXPIRED' : error ? 'DEGRADED' : 'ACTIVE';
+  const degraded = status !== 'ACTIVE';
+  const visibleLabel =
+    status === 'ACTIVE'
+      ? `Spotlight: ${scopeLabel} • ${context.role.toUpperCase()}`
+      : `Spotlight: ${scopeLabel} • ${context.role.toUpperCase()} • ${status}`;
+  const accessibleLabel =
+    `Spotlight context ${scopeLabel}, role ${context.role}, status ${status.toLowerCase()}`;
 
   return (
-    <Paper className={classes.root} elevation={2}>
+    <Paper
+      className={classes.root}
+      elevation={2}
+      role="status"
+      aria-live="polite"
+    >
       <Tooltip
         title={
           error
-            ? `${error} • Warden: ${context.wardenDecisionRef}`
-            : `Warden: ${context.wardenDecisionRef} • River: ${context.riverSessionRef}`
+            ? `${accessibleLabel}. ${error}. Warden: ${context.wardenDecisionRef}`
+            : `${accessibleLabel}. Warden: ${context.wardenDecisionRef} • River: ${context.riverSessionRef}`
         }
       >
         <Chip
           icon={degraded ? <WarningIcon /> : <FlareIcon />}
-          label={`Spotlight: ${scopeLabel} • ${context.role.toUpperCase()}`}
+          label={visibleLabel}
+          aria-label={accessibleLabel}
           size="small"
         />
       </Tooltip>
