@@ -14,6 +14,5 @@
  * limitations under the License.
  */
 
-export * from './extensions';
-export * from './services';
-export * from './contextService';
+export { SpotlightContextControl } from './SpotlightContextControl';
+export { SpotlightContextRibbon } from './SpotlightContextRibbon';

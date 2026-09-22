@@ -1,0 +1,74 @@
+{
+  "name": "@esomoire/backstage-plugin-synnergyze-context",
+  "version": "0.1.0",
+  "description": "Frontend Spotlight and operating-context controls for Synnergyze Backstage",
+  "private": true,
+  "backstage": {
+    "role": "frontend-plugin",
+    "pluginId": "synnergyze-context",
+    "pluginPackages": [
+      "@esomoire/backstage-plugin-synnergyze-context",
+      "@esomoire/backstage-plugin-synnergyze-context-common",
+      "@esomoire/backstage-plugin-synnergyze-context-node",
+      "@esomoire/backstage-plugin-synnergyze-context-backend",
+      "@esomoire/backstage-plugin-synnergyze-context-backend-module-alpha"
+    ]
+  },
+  "license": "Apache-2.0",
+  "sideEffects": false,
+  "exports": {
+    ".": "./src/index.ts",
+    "./alpha": "./src/alpha.tsx",
+    "./package.json": "./package.json"
+  },
+  "main": "src/index.ts",
+  "types": "src/index.ts",
+  "typesVersions": {
+    "*": {
+      "alpha": [
+        "src/alpha.tsx"
+      ],
+      "package.json": [
+        "package.json"
+      ]
+    }
+  },
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "build": "backstage-cli package build",
+    "clean": "backstage-cli package clean",
+    "lint": "backstage-cli package lint",
+    "prepack": "backstage-cli package prepack",
+    "postpack": "backstage-cli package postpack",
+    "start": "backstage-cli package start",
+    "test": "backstage-cli package test"
+  },
+  "dependencies": {
+    "@backstage/frontend-plugin-api": "workspace:^",
+    "@esomoire/backstage-plugin-synnergyze-context-common": "workspace:^",
+    "@material-ui/core": "^4.12.2",
+    "@material-ui/icons": "^4.9.1"
+  },
+  "devDependencies": {
+    "@backstage/cli": "workspace:^",
+    "@backstage/test-utils": "workspace:^",
+    "@testing-library/dom": "^10.0.0",
+    "@testing-library/jest-dom": "^6.0.0",
+    "@testing-library/react": "^16.0.0",
+    "@types/react": "^18.0.0",
+    "msw": "^2.0.0",
+    "react-dom": "^18.0.2"
+  },
+  "peerDependencies": {
+    "@types/react": "^17.0.0 || ^18.0.0",
+    "react": "^17.0.0 || ^18.0.0",
+    "react-dom": "^17.0.0 || ^18.0.0"
+  },
+  "peerDependenciesMeta": {
+    "@types/react": {
+      "optional": true
+    }
+  }
+}

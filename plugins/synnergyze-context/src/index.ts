@@ -14,6 +14,6 @@
  * limitations under the License.
  */
 
-export * from './extensions';
-export * from './services';
-export * from './contextService';
+export * from './api';
+export * from './components';
+export * from './context';

@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 
-export * from './extensions';
-export * from './services';
-export * from './contextService';
+export {
+  OperatingContextProvider,
+  useOperatingContext,
+} from './OperatingContextProvider';

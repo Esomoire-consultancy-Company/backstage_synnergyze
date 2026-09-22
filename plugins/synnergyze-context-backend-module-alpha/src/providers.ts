@@ -1,6 +1,23 @@
+/*
+ * Copyright 2026 The Backstage Authors
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 import {
   ContextRequest,
   ContextTransitionEvent,
+  OperatingContextOption,
   parseContextRequest,
   RiverTransitionReceipt,
   WardenAuthorizationResult,
@@ -14,6 +31,7 @@ import {
 export type HttpProviderOptions = {
   baseUrl: string;
   path: string;
+  listPath?: string;
   bearerToken?: string;
 };
 
@@ -41,6 +59,43 @@ function requireString(value: unknown, field: string): string {
     throw new Error(`${field} must be a non-empty string`);
   }
   return value;
+}
+
+function parseContextOption(value: unknown): OperatingContextOption {
+  if (!value || typeof value !== 'object') {
+    throw new Error('Warden context option must be an object');
+  }
+
+  const input = value as Record<string, unknown>;
+  const request = parseContextRequest({
+    role: input.role,
+    scope: input.scope,
+    spotlightRef: input.spotlightRef,
+  });
+
+  const base = {
+    id: requireString(input.id, 'contextOption.id'),
+    label: requireString(input.label, 'contextOption.label'),
+    ...(request.spotlightRef ? { spotlightRef: request.spotlightRef } : {}),
+  };
+
+  if (request.role === 'admin' && request.scope.type === 'estate') {
+    return {
+      ...base,
+      role: 'admin',
+      scope: request.scope,
+    };
+  }
+
+  if (request.role === 'developer' && request.scope.type === 'company') {
+    return {
+      ...base,
+      role: 'developer',
+      scope: request.scope,
+    };
+  }
+
+  throw new Error('Warden context option has an invalid role/scope pairing');
 }
 
 function parseWardenDecision(value: unknown): WardenContextDecision {
@@ -85,6 +140,69 @@ export class HttpWardenContextAuthorizer
 
   constructor(options: HttpProviderOptions) {
     this.#options = options;
+  }
+
+  async listEligibleContexts(input: {
+    principal: string;
+  }): Promise<OperatingContextOption[] | undefined> {
+    if (!this.#options.listPath) {
+      return undefined;
+    }
+
+    const url = endpointFor(
+      this.#options.baseUrl,
+      this.#options.listPath,
+    );
+
+    const response = await fetch(url, {
+      method: 'GET',
+      headers: {
+        ...headers(this.#options.bearerToken),
+        'x-synnergyze-principal': input.principal,
+      },
+    });
+
+    if (response.status === 501) {
+      return undefined;
+    }
+
+    if (response.status === 404) {
+      throw new Error(
+        'Configured Warden context discovery endpoint was not found',
+      );
+    }
+
+    if (!response.ok) {
+      throw new Error(
+        `Warden context discovery failed with HTTP ${response.status}`,
+      );
+    }
+
+    const body = await readJson(response);
+    const rawOptions =
+      Array.isArray(body)
+        ? body
+        : body &&
+            typeof body === 'object' &&
+            Array.isArray((body as Record<string, unknown>).options)
+          ? (body as Record<string, unknown>).options
+          : undefined;
+
+    if (!rawOptions) {
+      throw new Error('Warden context discovery response must contain options');
+    }
+
+    return rawOptions.map((option, index) => {
+      try {
+        return parseContextOption(option);
+      } catch (error) {
+        const detail =
+          error instanceof Error ? error.message : String(error);
+        throw new Error(
+          `Warden context option[${index}] is invalid: ${detail}`,
+        );
+      }
+    });
   }
 
   async authorize(input: {

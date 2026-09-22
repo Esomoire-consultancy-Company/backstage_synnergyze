@@ -42,6 +42,8 @@ import { appModuleHome } from './modules/appModuleHome';
 import { appModuleScaffolder } from './modules/appModuleScaffolder';
 import catalogPlugin from '@backstage/plugin-catalog/alpha';
 import InfoIcon from '@material-ui/icons/Info';
+import synnergyzeContextPlugin from '@esomoire/backstage-plugin-synnergyze-context/alpha';
+import { appModuleSynnergyzeContext } from './modules/appModuleSynnergyzeContext';
 
 /**
  * TechDocs does support the new frontend system so this conversion is not
@@ -96,6 +98,8 @@ const app = createApp({
     appModuleNav,
     appModuleHome,
     appModuleScaffolder,
+    synnergyzeContextPlugin,
+    appModuleSynnergyzeContext,
     ...collectedLegacyPlugins,
   ],
   advanced: {

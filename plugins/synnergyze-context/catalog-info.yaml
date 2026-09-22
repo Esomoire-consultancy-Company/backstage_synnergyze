@@ -1,0 +1,10 @@
+apiVersion: backstage.io/v1alpha1
+kind: Component
+metadata:
+  name: esomoire-backstage-plugin-synnergyze-context
+  title: '@esomoire/backstage-plugin-synnergyze-context'
+  description: Spotlight and Warden-authorized operating-context controls for Synnergyze Backstage
+spec:
+  lifecycle: experimental
+  type: backstage-frontend-plugin
+  owner: maintainers

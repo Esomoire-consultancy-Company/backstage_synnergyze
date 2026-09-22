@@ -93,6 +93,45 @@ spec:
                 application/json:
                   schema:
                     $ref: '#/components/schemas/OperatingContext'
+      /context/options:
+        get:
+          operationId: listEligibleContexts
+          description: List Warden-discovered operating contexts available for selection. Options are candidates, not authority grants.
+          responses:
+            '200':
+              description: Context discovery state and eligible options
+              content:
+                application/json:
+                  schema:
+                    type: object
+                    required: [discoveryAvailable, options]
+                    properties:
+                      discoveryAvailable:
+                        type: boolean
+                      options:
+                        type: array
+                        items:
+                          $ref: '#/components/schemas/OperatingContextOption'
+            '502':
+              description: Configured Warden discovery failed
+              content:
+                application/json:
+                  schema:
+                    type: object
+                    required: [error]
+                    properties:
+                      error:
+                        type: string
+            '503':
+              description: No Warden authorizer is configured
+              content:
+                application/json:
+                  schema:
+                    type: object
+                    required: [error]
+                    properties:
+                      error:
+                        type: string
       /billing/scope:
         get:
           operationId: getBillingScope
@@ -183,6 +222,20 @@ spec:
         ContextRole:
           type: string
           enum: [admin, developer]
+        OperatingContextOption:
+          type: object
+          required: [id, label, role, scope]
+          properties:
+            id:
+              type: string
+            label:
+              type: string
+            role:
+              $ref: '#/components/schemas/ContextRole'
+            scope:
+              $ref: '#/components/schemas/ContextScope'
+            spotlightRef:
+              type: string
         ContextRequest:
           type: object
           required: [role, scope]

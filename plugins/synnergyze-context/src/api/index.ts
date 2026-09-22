@@ -14,6 +14,20 @@
  * limitations under the License.
  */
 
-export * from './extensions';
-export * from './services';
-export * from './contextService';
+import { createApiRef } from '@backstage/frontend-plugin-api';
+import { SynnergyzeContextApi } from './types';
+
+export const synnergyzeContextApiRef = createApiRef<SynnergyzeContextApi>().with({
+  id: 'synnergyze-context.operating-context',
+  pluginId: 'synnergyze-context',
+});
+
+export { SynnergyzeContextClient } from './SynnergyzeContextClient';
+export type {
+  ContextOptionsResponse,
+  ContextRequest,
+  OperatingContext,
+  OperatingContextOption,
+  SynnergyzeContextApi,
+  WardenAuthorizationResult,
+} from './types';

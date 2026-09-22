@@ -16,25 +16,28 @@
 
 import {
   ContextRequest,
-  ContextTransitionEvent,
+  OperatingContext,
   OperatingContextOption,
-  RiverTransitionReceipt,
   WardenAuthorizationResult,
 } from '@esomoire/backstage-plugin-synnergyze-context-common';
 
-export interface WardenContextAuthorizer {
-  authorize(input: {
-    principal: string;
-    request: ContextRequest;
-  }): Promise<WardenAuthorizationResult>;
+export type ContextOptionsResponse = {
+  discoveryAvailable: boolean;
+  options: OperatingContextOption[];
+};
 
-  listEligibleContexts?(input: {
-    principal: string;
-  }): Promise<OperatingContextOption[] | undefined>;
+export interface SynnergyzeContextApi {
+  getActiveContext(): Promise<OperatingContext | undefined>;
+  listEligibleContexts(): Promise<ContextOptionsResponse>;
+  resolveContext(
+    request: ContextRequest,
+  ): Promise<WardenAuthorizationResult>;
+  transitionContext(request: ContextRequest): Promise<OperatingContext>;
 }
 
-export interface RiverContextObserver {
-  recordTransition(
-    event: ContextTransitionEvent,
-  ): Promise<RiverTransitionReceipt>;
-}
+export type {
+  ContextRequest,
+  OperatingContext,
+  OperatingContextOption,
+  WardenAuthorizationResult,
+};

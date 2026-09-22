@@ -1,3 +1,19 @@
+/*
+ * Copyright 2026 The Backstage Authors
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 import {
   HttpAuthService,
   PermissionsService,
@@ -61,6 +77,43 @@ export async function createRouter(
     }
 
     res.json(context);
+  });
+
+  router.get('/context/options', async (req, res) => {
+    if (!options.authorizer) {
+      res.status(503).json({
+        error: 'No Warden context authorizer is registered',
+      });
+      return;
+    }
+
+    if (!options.authorizer.listEligibleContexts) {
+      res.json({
+        discoveryAvailable: false,
+        options: [],
+      });
+      return;
+    }
+
+    const principal = await principalFor(req);
+
+    try {
+      const contextOptions = await options.authorizer.listEligibleContexts({
+        principal,
+      });
+
+      res.json({
+        discoveryAvailable: contextOptions !== undefined,
+        options: contextOptions ?? [],
+      });
+    } catch (error) {
+      res.status(502).json({
+        error:
+          error instanceof Error
+            ? error.message
+            : 'Warden context discovery failed',
+      });
+    }
   });
 
   router.get('/billing/scope', async (req, res) => {
