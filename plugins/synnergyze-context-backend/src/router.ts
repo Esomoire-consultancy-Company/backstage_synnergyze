@@ -96,14 +96,24 @@ export async function createRouter(
     }
 
     const principal = await principalFor(req);
-    const contextOptions = await options.authorizer.listEligibleContexts({
-      principal,
-    });
 
-    res.json({
-      discoveryAvailable: contextOptions !== undefined,
-      options: contextOptions ?? [],
-    });
+    try {
+      const contextOptions = await options.authorizer.listEligibleContexts({
+        principal,
+      });
+
+      res.json({
+        discoveryAvailable: contextOptions !== undefined,
+        options: contextOptions ?? [],
+      });
+    } catch (error) {
+      res.status(502).json({
+        error:
+          error instanceof Error
+            ? error.message
+            : 'Warden context discovery failed',
+      });
+    }
   });
 
   router.get('/billing/scope', async (req, res) => {
