@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 
+import { useSidebarOpenState } from '@backstage/core-components';
 import {
   Box,
   Button,
@@ -35,7 +36,7 @@ import {
 } from '@material-ui/core';
 import FlareIcon from '@material-ui/icons/Flare';
 import WarningIcon from '@material-ui/icons/Warning';
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import {
   ContextRequest,
   WardenAuthorizationResult,
@@ -103,6 +104,7 @@ function requestFingerprint(request: ContextRequest): string {
 
 export function SpotlightContextControl() {
   const classes = useStyles();
+  const { isOpen: sidebarOpen } = useSidebarOpenState();
   const {
     context,
     loading,
@@ -114,7 +116,6 @@ export function SpotlightContextControl() {
     refreshOptions,
     resolve,
     transition,
-    refresh,
   } = useOperatingContext();
 
   const [open, setOpen] = useState(false);
@@ -130,6 +131,7 @@ export function SpotlightContextControl() {
   const [previewFingerprint, setPreviewFingerprint] = useState<string>();
   const [busy, setBusy] = useState(false);
   const [dialogError, setDialogError] = useState<string>();
+  const seededOpenRef = useRef(false);
 
   useEffect(() => {
     if (!open) {
@@ -141,9 +143,15 @@ export function SpotlightContextControl() {
 
   useEffect(() => {
     if (!open) {
+      seededOpenRef.current = false;
       return;
     }
 
+    if (loading || seededOpenRef.current) {
+      return;
+    }
+
+    seededOpenRef.current = true;
     setSelectedOptionId('');
 
     if (context) {
@@ -165,7 +173,7 @@ export function SpotlightContextControl() {
     setPreview(undefined);
     setPreviewFingerprint(undefined);
     setDialogError(undefined);
-  }, [open, context]);
+  }, [open, loading, context]);
 
   const request = useMemo<ContextRequest>(() => {
     if (role === 'admin') {
@@ -271,7 +279,17 @@ export function SpotlightContextControl() {
   };
 
   const handleActivate = async () => {
-    if (!previewIsCurrent) {
+    const decisionStillCurrent =
+      preview?.authorized === true &&
+      previewFingerprint === fingerprint &&
+      Date.parse(preview.decision.authorityExpiresAt) > Date.now();
+
+    if (!decisionStillCurrent) {
+      setPreview(undefined);
+      setPreviewFingerprint(undefined);
+      setDialogError(
+        'Warden preview is missing, changed, or expired. Preview again before activation.',
+      );
       return;
     }
 
@@ -280,7 +298,6 @@ export function SpotlightContextControl() {
 
     try {
       await transition(request);
-      await refresh();
       setOpen(false);
     } catch (e) {
       setDialogError(
@@ -295,17 +312,23 @@ export function SpotlightContextControl() {
 
   return (
     <>
-      <Tooltip title="Spotlight operating context" placement="right">
+      <Tooltip title={`${activeLabel} — open Spotlight operating context`} placement="right">
         <Button
           className={classes.trigger}
           startIcon={<FlareIcon />}
           onClick={() => setOpen(true)}
-          fullWidth
-          aria-label="Open Spotlight operating context"
+          fullWidth={sidebarOpen}
+          aria-label={
+            loading
+              ? 'Loading Spotlight operating context'
+              : `${activeLabel} — open Spotlight operating context`
+          }
         >
-          <span className={classes.triggerText}>
-            {loading ? 'Loading Spotlight…' : activeLabel}
-          </span>
+          {sidebarOpen ? (
+            <span className={classes.triggerText}>
+              {loading ? 'Loading Spotlight…' : activeLabel}
+            </span>
+          ) : null}
         </Button>
       </Tooltip>
 
@@ -429,6 +452,7 @@ export function SpotlightContextControl() {
               value={role}
               onChange={event => {
                 setRole(event.target.value as 'admin' | 'developer');
+                setSelectedOptionId('');
                 setPreview(undefined);
                 setPreviewFingerprint(undefined);
               }}
@@ -448,6 +472,7 @@ export function SpotlightContextControl() {
               value={estateRef}
               onChange={event => {
                 setEstateRef(event.target.value);
+                setSelectedOptionId('');
                 setPreview(undefined);
                 setPreviewFingerprint(undefined);
               }}
@@ -463,6 +488,7 @@ export function SpotlightContextControl() {
                 value={companyRef}
                 onChange={event => {
                   setCompanyRef(event.target.value);
+                setSelectedOptionId('');
                   setPreview(undefined);
                   setPreviewFingerprint(undefined);
                 }}
@@ -476,6 +502,7 @@ export function SpotlightContextControl() {
                 value={workspaceRef}
                 onChange={event => {
                   setWorkspaceRef(event.target.value);
+                setSelectedOptionId('');
                   setPreview(undefined);
                   setPreviewFingerprint(undefined);
                 }}
@@ -489,6 +516,7 @@ export function SpotlightContextControl() {
                 value={projectRef}
                 onChange={event => {
                   setProjectRef(event.target.value);
+                setSelectedOptionId('');
                   setPreview(undefined);
                   setPreviewFingerprint(undefined);
                 }}
@@ -505,6 +533,7 @@ export function SpotlightContextControl() {
             value={spotlightRef}
             onChange={event => {
               setSpotlightRef(event.target.value);
+                setSelectedOptionId('');
               setPreview(undefined);
               setPreviewFingerprint(undefined);
             }}
