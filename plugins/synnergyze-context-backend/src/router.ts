@@ -9,17 +9,17 @@ import {
 } from '@esomoire/backstage-plugin-synnergyze-context-common';
 import {
   RiverContextObserver,
+  SynnergyzeOperatingContextService,
   WardenContextAuthorizer,
 } from '@esomoire/backstage-plugin-synnergyze-context-node';
 import express from 'express';
 import Router from 'express-promise-router';
 import { randomUUID } from 'node:crypto';
-import { OperatingContextStore } from './store';
 
 export interface RouterOptions {
   httpAuth: HttpAuthService;
   userInfo: UserInfoService;
-  store: OperatingContextStore;
+  store: SynnergyzeOperatingContextService;
   authorizer?: WardenContextAuthorizer;
   observer?: RiverContextObserver;
 }
