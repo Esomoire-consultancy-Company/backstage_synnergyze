@@ -182,6 +182,14 @@ catalog:
     # File locations are relative to the current working directory of the
     # backend, for example packages/backend/.
 
+    # Synnergyze / VSR developer account and governed runtime catalog
+    - type: file
+      target: ../../catalog/bnr-synnergyze-commercial-catalog.yaml
+    - type: file
+      target: ../../catalog/synnergyze-developer-account.yaml
+      rules:
+        - allow: [User, Group, Component, Resource]
+
     # Backstage example entities
     - type: file
       target: ../catalog-model/examples/all.yaml

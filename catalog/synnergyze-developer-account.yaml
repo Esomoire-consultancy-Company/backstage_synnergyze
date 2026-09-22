@@ -1,0 +1,109 @@
+apiVersion: backstage.io/v1alpha1
+kind: Group
+metadata:
+  name: esomoire
+  title: Esomoire
+  description: Parent organization for Synnergyze operating contexts.
+spec:
+  type: organization
+  profile:
+    displayName: Esomoire
+  children:
+    - synnergyze-developers
+    - synnergyze-admins
+
+---
+apiVersion: backstage.io/v1alpha1
+kind: Group
+metadata:
+  name: synnergyze-developers
+  title: Synnergyze Developers
+  description: Scoped developer context for client, company, project, API, deployment, runtime usage, and billing work.
+spec:
+  type: team
+  profile:
+    displayName: Synnergyze Developers
+  parent: esomoire
+  children: []
+
+---
+apiVersion: backstage.io/v1alpha1
+kind: Group
+metadata:
+  name: synnergyze-admins
+  title: Synnergyze Admins
+  description: Estate-wide administration and governance context.
+spec:
+  type: team
+  profile:
+    displayName: Synnergyze Admins
+  parent: esomoire
+  children: []
+
+---
+apiVersion: backstage.io/v1alpha1
+kind: User
+metadata:
+  name: esomoire-consultancy-company
+  title: Faiz Ahmed
+  description: Synnergyze Backstage principal with developer as the default operating context.
+  annotations:
+    github.com/user-login: Esomoire-consultancy-Company
+    github.com/user-id: '193629930'
+    vsr.synnergyze.io/default-context: developer
+    vsr.synnergyze.io/roles: admin,developer
+spec:
+  profile:
+    displayName: Faiz Ahmed
+    email: faiz@esomoire.com
+  memberOf:
+    - synnergyze-developers
+    - synnergyze-admins
+
+---
+apiVersion: backstage.io/v1alpha1
+kind: Resource
+metadata:
+  name: logic-erp-stock-provider
+  title: LOGIC ERP Stock Provider
+  description: External read-only provider boundary for GetStockInHand. Live provider authentication remains pending.
+  annotations:
+    vsr.synnergyze.io/provider: logic-erp
+    vsr.synnergyze.io/operation: GetStockInHand
+    vsr.synnergyze.io/access-mode: read-only
+    vsr.synnergyze.io/binding-state: registered-pending-binding
+spec:
+  type: external-service
+  owner: group:default/synnergyze-developers
+  system: synnergyze-client-assurance-cockpit
+
+---
+apiVersion: backstage.io/v1alpha1
+kind: Component
+metadata:
+  name: voi-logic-stock-developer-runtime
+  title: VOI LOGIC Stock Developer Runtime
+  description: Developer-owned Backstage component for the governed LOGIC stock read, DataWeave R0.3 transform, Warden authorization, and River evidence path on Alpha.
+  tags:
+    - developer
+    - voi
+    - logic-erp
+    - dataweave
+    - warden
+    - riveros
+    - alpha
+  annotations:
+    github.com/project-slug: Esomoire-consultancy-Company/backstage_synnergyze
+    vsr.synnergyze.io/context: developer
+    vsr.synnergyze.io/runtime-node: ALPHA-NODE-001
+    vsr.synnergyze.io/provider-binding: pending
+    vsr.synnergyze.io/warden-state: live-qualified
+    vsr.synnergyze.io/river-state: live
+    vsr.synnergyze.io/dataweave-transform: logic.stock.to.inventory-R0.3
+spec:
+  type: service
+  lifecycle: experimental
+  owner: group:default/synnergyze-developers
+  system: synnergyze-client-assurance-cockpit
+  dependsOn:
+    - resource:default/logic-erp-stock-provider
