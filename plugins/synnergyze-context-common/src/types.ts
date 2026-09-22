@@ -20,6 +20,14 @@ export type ContextRequest = {
   spotlightRef?: string;
 };
 
+export type OperatingContextOption = {
+  id: string;
+  label: string;
+  role: OperatingRole;
+  scope: OperatingScope;
+  spotlightRef?: string;
+};
+
 export type WardenContextDecision = {
   decisionRef: string;
   principal: string;
