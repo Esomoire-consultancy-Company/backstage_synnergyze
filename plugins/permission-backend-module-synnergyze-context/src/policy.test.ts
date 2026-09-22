@@ -211,6 +211,27 @@ describe('SynnergyzeContextPermissionPolicy', () => {
     });
   });
 
+  it('denies billing for a malformed role/scope combination', async () => {
+    const malformed = {
+      ...developerContext,
+      scope: {
+        type: 'estate',
+        estateRef: 'estate:default/alpha',
+      },
+    } as unknown as OperatingContext;
+
+    const policy = new SynnergyzeContextPermissionPolicy(
+      userInfo,
+      contextService(malformed),
+    );
+
+    await expect(
+      policy.handle({ permission: synnergyzeBillingReadPermission }, user),
+    ).resolves.toEqual({
+      result: AuthorizeResult.DENY,
+    });
+  });
+
   it('keeps unmigrated permissions allowed during the R0.3 compatibility window', async () => {
     const permission = createPermission({
       name: 'example.unmigrated.read',
