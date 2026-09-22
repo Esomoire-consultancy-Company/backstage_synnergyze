@@ -107,12 +107,18 @@ export function SpotlightContextControl() {
     context,
     loading,
     error,
+    options,
+    optionsLoading,
+    optionsDiscoveryAvailable,
+    optionsError,
+    refreshOptions,
     resolve,
     transition,
     refresh,
   } = useOperatingContext();
 
   const [open, setOpen] = useState(false);
+  const [selectedOptionId, setSelectedOptionId] = useState('');
   const [role, setRole] = useState<'admin' | 'developer'>('developer');
   const [estateRef, setEstateRef] = useState('');
   const [companyRef, setCompanyRef] = useState('');
@@ -129,6 +135,16 @@ export function SpotlightContextControl() {
     if (!open) {
       return;
     }
+
+    void refreshOptions();
+  }, [open, refreshOptions]);
+
+  useEffect(() => {
+    if (!open) {
+      return;
+    }
+
+    setSelectedOptionId('');
 
     if (context) {
       setRole(context.role);
@@ -205,6 +221,33 @@ export function SpotlightContextControl() {
     : undefined;
   const expiringSoon =
     expiresInMs !== undefined && expiresInMs > 0 && expiresInMs < 5 * 60_000;
+
+  const applyEligibleOption = (optionId: string) => {
+    setSelectedOptionId(optionId);
+    const option = options.find(candidate => candidate.id === optionId);
+    if (!option) {
+      return;
+    }
+
+    setRole(option.role);
+    setSpotlightRef(option.spotlightRef ?? '');
+
+    if (option.scope.type === 'estate') {
+      setEstateRef(option.scope.estateRef);
+      setCompanyRef('');
+      setWorkspaceRef('');
+      setProjectRef('');
+    } else {
+      setCompanyRef(option.scope.companyRef);
+      setWorkspaceRef(option.scope.workspaceRef ?? '');
+      setProjectRef(option.scope.projectRef ?? '');
+      setEstateRef('');
+    }
+
+    setPreview(undefined);
+    setPreviewFingerprint(undefined);
+    setDialogError(undefined);
+  };
 
   const handlePreview = async () => {
     setBusy(true);
@@ -320,6 +363,58 @@ export function SpotlightContextControl() {
           )}
 
           <Divider />
+
+          {optionsLoading && (
+            <Box className={classes.field}>
+              <CircularProgress size={18} />
+            </Box>
+          )}
+
+          {options.length > 0 && (
+            <FormControl
+              fullWidth
+              variant="outlined"
+              className={classes.field}
+            >
+              <InputLabel id="eligible-context-label">
+                Eligible context
+              </InputLabel>
+              <Select
+                labelId="eligible-context-label"
+                value={selectedOptionId}
+                onChange={event =>
+                  applyEligibleOption(String(event.target.value))
+                }
+                label="Eligible context"
+              >
+                <MenuItem value="">
+                  <em>Manual scope</em>
+                </MenuItem>
+                {options.map(option => (
+                  <MenuItem key={option.id} value={option.id}>
+                    {option.label}
+                  </MenuItem>
+                ))}
+              </Select>
+            </FormControl>
+          )}
+
+          {optionsDiscoveryAvailable === false && (
+            <Typography variant="body2" className={classes.field}>
+              Warden context discovery is not available. Enter a scope
+              manually; it still requires Warden preview and activation.
+            </Typography>
+          )}
+
+          {optionsError && (
+            <Typography
+              color="error"
+              variant="body2"
+              className={classes.field}
+            >
+              {optionsError}
+            </Typography>
+          )}
 
           <FormControl
             fullWidth
