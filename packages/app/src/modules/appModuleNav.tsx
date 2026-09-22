@@ -33,6 +33,7 @@ import { SidebarSearchModal } from '@backstage/plugin-search';
 import { NotificationsSidebarItem } from '@backstage/plugin-notifications';
 import { UserSettingsSignInAvatar } from '@backstage/plugin-user-settings';
 import { makeStyles } from '@material-ui/core/styles';
+import { SpotlightContextControl } from '@esomoire/backstage-plugin-synnergyze-context';
 
 const useSidebarLogoStyles = makeStyles({
   root: {
@@ -113,6 +114,8 @@ export const appModuleNav = createFrontendModule({
           return (
             <Sidebar>
               <SidebarLogo />
+              <SpotlightContextControl />
+              <SidebarDivider />
               <SidebarGroup label="Search" icon={<SearchIcon />} to="/search">
                 <SidebarSearchModal />
               </SidebarGroup>
