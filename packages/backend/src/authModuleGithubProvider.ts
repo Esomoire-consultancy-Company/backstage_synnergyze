@@ -15,10 +15,7 @@
  */
 
 import { createBackendModule } from '@backstage/backend-plugin-api';
-import {
-  DEFAULT_NAMESPACE,
-  stringifyEntityRef,
-} from '@backstage/catalog-model';
+import { DEFAULT_NAMESPACE } from '@backstage/catalog-model';
 import { githubAuthenticator } from '@backstage/plugin-auth-backend-module-github-provider';
 import {
   authProvidersExtensionPoint,
@@ -44,16 +41,11 @@ export default createBackendModule({
                 );
               }
 
-              const userEntityRef = stringifyEntityRef({
-                kind: 'User',
-                name: userId,
-                namespace: DEFAULT_NAMESPACE,
-              });
-
-              return ctx.issueToken({
-                claims: {
-                  sub: userEntityRef,
-                  ent: [userEntityRef],
+              return ctx.signInWithCatalogUser({
+                entityRef: {
+                  kind: 'User',
+                  name: userId,
+                  namespace: DEFAULT_NAMESPACE,
                 },
               });
             },
