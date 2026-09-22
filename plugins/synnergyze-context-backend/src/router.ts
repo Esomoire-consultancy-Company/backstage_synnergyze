@@ -1,5 +1,4 @@
 import {
-  AuthService,
   HttpAuthService,
   UserInfoService,
 } from '@backstage/backend-plugin-api';
@@ -18,7 +17,6 @@ import { randomUUID } from 'node:crypto';
 import { OperatingContextStore } from './store';
 
 export interface RouterOptions {
-  auth: AuthService;
   httpAuth: HttpAuthService;
   userInfo: UserInfoService;
   store: OperatingContextStore;
@@ -37,26 +35,6 @@ export async function createRouter(
     const credentials = await httpAuth.credentials(req, { allow: ['user'] });
     const info = await userInfo.getUserInfo(credentials);
     return info.userEntityRef;
-  };
-
-  const requireAuthorizer = (): WardenContextAuthorizer => {
-    if (!options.authorizer) {
-      throw Object.assign(
-        new Error('No Warden context authorizer is registered'),
-        { statusCode: 503 },
-      );
-    }
-    return options.authorizer;
-  };
-
-  const requireObserver = (): RiverContextObserver => {
-    if (!options.observer) {
-      throw Object.assign(
-        new Error('No River context observer is registered'),
-        { statusCode: 503 },
-      );
-    }
-    return options.observer;
   };
 
   router.get('/health', (_req, res) => {
@@ -82,9 +60,16 @@ export async function createRouter(
   });
 
   router.post('/context/resolve', async (req, res) => {
+    if (!options.authorizer) {
+      res.status(503).json({
+        error: 'No Warden context authorizer is registered',
+      });
+      return;
+    }
+
     const principal = await principalFor(req);
     const request = parseContextRequest(req.body);
-    const result = await requireAuthorizer().authorize({
+    const result = await options.authorizer.authorize({
       principal,
       request,
     });
@@ -111,11 +96,25 @@ export async function createRouter(
   });
 
   router.post('/context/transition', async (req, res) => {
+    if (!options.authorizer) {
+      res.status(503).json({
+        error: 'No Warden context authorizer is registered',
+      });
+      return;
+    }
+
+    if (!options.observer) {
+      res.status(503).json({
+        error: 'No River context observer is registered',
+      });
+      return;
+    }
+
     const principal = await principalFor(req);
     const request = parseContextRequest(req.body);
     const previousContext = await store.get(principal);
 
-    const authorization = await requireAuthorizer().authorize({
+    const authorization = await options.authorizer.authorize({
       principal,
       request,
     });
@@ -144,8 +143,8 @@ export async function createRouter(
       decision: authorization.decision,
     };
 
-    // Evidence must be committed before the active context changes.
-    const receipt = await requireObserver().recordTransition(event);
+    // Evidence must be committed before active context changes.
+    const receipt = await options.observer.recordTransition(event);
 
     const context: OperatingContext = {
       principal,
