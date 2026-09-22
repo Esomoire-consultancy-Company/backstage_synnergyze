@@ -33,16 +33,16 @@ import {
 
 const COMPANY_ANNOTATION = 'vsr.esomoire.io/company-ref';
 
-const CATALOG_GLOBAL_PERMISSIONS = [
-  catalogEntityCreatePermission,
-  catalogEntityValidatePermission,
-  catalogLocationReadPermission,
-  catalogLocationCreatePermission,
-  catalogLocationDeletePermission,
-  catalogLocationAnalyzePermission,
-  catalogIngestionReadPermission,
-  catalogIngestionManagePermission,
-];
+const CATALOG_GLOBAL_PERMISSION_NAMES = new Set([
+  catalogEntityCreatePermission.name,
+  catalogEntityValidatePermission.name,
+  catalogLocationReadPermission.name,
+  catalogLocationCreatePermission.name,
+  catalogLocationDeletePermission.name,
+  catalogLocationAnalyzePermission.name,
+  catalogIngestionReadPermission.name,
+  catalogIngestionManagePermission.name,
+]);
 
 export class SynnergyzeContextPermissionPolicy implements PermissionPolicy {
   constructor(
@@ -62,9 +62,8 @@ export class SynnergyzeContextPermissionPolicy implements PermissionPolicy {
       request.permission,
       synnergyzeBillingReadPermission,
     );
-    const isGlobalCatalogPermission = CATALOG_GLOBAL_PERMISSIONS.some(
-      permission => isPermission(request.permission, permission),
-    );
+    const isGlobalCatalogPermission =
+      CATALOG_GLOBAL_PERMISSION_NAMES.has(request.permission.name);
 
     if (!isCatalogResource && !isBillingRead && !isGlobalCatalogPermission) {
       // Preserve current Backstage behavior for permissions not yet migrated
