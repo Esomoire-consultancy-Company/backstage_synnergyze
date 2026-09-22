@@ -39,10 +39,17 @@ export type ContextRequest = {
 export type OperatingContextOption = {
   id: string;
   label: string;
-  role: OperatingRole;
-  scope: OperatingScope;
   spotlightRef?: string;
-};
+} & (
+  | {
+      role: 'admin';
+      scope: EstateScope;
+    }
+  | {
+      role: 'developer';
+      scope: CompanyScope;
+    }
+);
 
 export type WardenContextDecision = {
   decisionRef: string;
