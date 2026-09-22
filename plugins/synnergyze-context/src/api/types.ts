@@ -17,11 +17,18 @@
 import {
   ContextRequest,
   OperatingContext,
+  OperatingContextOption,
   WardenAuthorizationResult,
 } from '@esomoire/backstage-plugin-synnergyze-context-common';
 
+export type ContextOptionsResponse = {
+  discoveryAvailable: boolean;
+  options: OperatingContextOption[];
+};
+
 export interface SynnergyzeContextApi {
   getActiveContext(): Promise<OperatingContext | undefined>;
+  listEligibleContexts(): Promise<ContextOptionsResponse>;
   resolveContext(
     request: ContextRequest,
   ): Promise<WardenAuthorizationResult>;
@@ -31,5 +38,6 @@ export interface SynnergyzeContextApi {
 export type {
   ContextRequest,
   OperatingContext,
+  OperatingContextOption,
   WardenAuthorizationResult,
 };
