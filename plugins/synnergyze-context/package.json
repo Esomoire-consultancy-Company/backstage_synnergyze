@@ -25,11 +25,17 @@
   "types": "src/index.ts",
   "typesVersions": {
     "*": {
-      "alpha": ["src/alpha.tsx"],
-      "package.json": ["package.json"]
+      "alpha": [
+        "src/alpha.tsx"
+      ],
+      "package.json": [
+        "package.json"
+      ]
     }
   },
-  "files": ["dist"],
+  "files": [
+    "dist"
+  ],
   "scripts": {
     "build": "backstage-cli package build",
     "clean": "backstage-cli package clean",
@@ -37,7 +43,6 @@
     "test": "backstage-cli package test"
   },
   "dependencies": {
-    "@backstage/core-components": "workspace:^",
     "@backstage/frontend-plugin-api": "workspace:^",
     "@esomoire/backstage-plugin-synnergyze-context-common": "workspace:^",
     "@material-ui/core": "^4.12.2",
@@ -51,6 +56,7 @@
     "@testing-library/jest-dom": "^6.0.0",
     "@testing-library/react": "^16.0.0",
     "@types/react": "^18.0.0",
+    "msw": "^2.0.0",
     "react-dom": "^18.0.2"
   },
   "peerDependencies": {
