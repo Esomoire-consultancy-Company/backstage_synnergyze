@@ -99,9 +99,15 @@ export class SynnergyzeContextPermissionPolicy implements PermissionPolicy {
     }
 
     if (isBillingRead) {
-      // The billing handler must use the same active context to choose
-      // Estate aggregation vs company/workspace scope.
-      return { result: AuthorizeResult.ALLOW };
+      if (context.role === 'admin' && context.scope.type === 'estate') {
+        return { result: AuthorizeResult.ALLOW };
+      }
+
+      if (context.role === 'developer' && context.scope.type === 'company') {
+        return { result: AuthorizeResult.ALLOW };
+      }
+
+      return { result: AuthorizeResult.DENY };
     }
 
     if (context.role === 'admin') {
