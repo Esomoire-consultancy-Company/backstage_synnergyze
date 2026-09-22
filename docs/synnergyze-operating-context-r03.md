@@ -75,6 +75,8 @@ metadata:
     vsr.esomoire.io/company-ref: company:default/voi-jeans
 ```
 
+If the active Developer context also carries `workspaceRef` and/or `projectRef`, the policy adds matching `vsr.esomoire.io/workspace-ref` and `vsr.esomoire.io/project-ref` conditions. Catalog visibility therefore narrows with the active operating context rather than remaining company-wide.
+
 Global Catalog operations that cannot be resource-filtered remain Admin-only.
 
 ## Billing proof case
