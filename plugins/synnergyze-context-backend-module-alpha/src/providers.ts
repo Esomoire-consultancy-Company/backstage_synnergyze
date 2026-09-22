@@ -28,6 +28,14 @@ function headers(token?: string): Record<string, string> {
   };
 }
 
+async function readJson(response: Response): Promise<unknown> {
+  try {
+    return await response.json();
+  } catch {
+    return undefined;
+  }
+}
+
 function requireString(value: unknown, field: string): string {
   if (typeof value !== 'string' || value.trim().length === 0) {
     throw new Error(`${field} must be a non-empty string`);
@@ -92,7 +100,7 @@ export class HttpWardenContextAuthorizer
       },
     );
 
-    const body = (await response.json()) as unknown;
+    const body = await readJson(response);
 
     if (response.status === 403) {
       const reason =
@@ -162,7 +170,7 @@ export class HttpRiverContextObserver implements RiverContextObserver {
       );
     }
 
-    const body = (await response.json()) as unknown;
+    const body = await readJson(response);
     if (!body || typeof body !== 'object') {
       throw new Error('River transition response must be an object');
     }
