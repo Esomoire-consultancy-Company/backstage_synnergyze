@@ -1,0 +1,34 @@
+{
+  "name": "@esomoire/backstage-plugin-synnergyze-context-backend-module-alpha",
+  "version": "0.1.0",
+  "description": "Alpha HTTP adapters connecting Synnergyze operating context to Warden and River",
+  "private": true,
+  "backstage": {
+    "role": "backend-plugin-module",
+    "pluginId": "synnergyze-context",
+    "pluginPackage": "@esomoire/backstage-plugin-synnergyze-context-backend"
+  },
+  "license": "Apache-2.0",
+  "main": "src/index.ts",
+  "types": "src/index.ts",
+  "files": [
+    "dist",
+    "config.d.ts"
+  ],
+  "scripts": {
+    "build": "backstage-cli package build",
+    "clean": "backstage-cli package clean",
+    "lint": "backstage-cli package lint",
+    "test": "backstage-cli package test"
+  },
+  "dependencies": {
+    "@backstage/backend-plugin-api": "workspace:^",
+    "@backstage/config": "workspace:^",
+    "@esomoire/backstage-plugin-synnergyze-context-common": "workspace:^",
+    "@esomoire/backstage-plugin-synnergyze-context-node": "workspace:^"
+  },
+  "devDependencies": {
+    "@backstage/cli": "workspace:^"
+  },
+  "configSchema": "config.d.ts"
+}
