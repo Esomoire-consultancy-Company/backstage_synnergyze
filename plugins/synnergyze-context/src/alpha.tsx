@@ -41,5 +41,6 @@ const api = ApiBlueprint.make({
 export default createFrontendPlugin({
   pluginId: 'synnergyze-context',
   title: 'Synnergyze Context',
+  info: { packageJson: () => import('../package.json') },
   extensions: [api],
 });
