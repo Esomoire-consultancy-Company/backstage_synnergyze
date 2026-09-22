@@ -112,9 +112,9 @@ export class HttpWardenContextAuthorizer
 
   async listEligibleContexts(input: {
     principal: string;
-  }): Promise<OperatingContextOption[]> {
+  }): Promise<OperatingContextOption[] | undefined> {
     if (!this.#options.listPath) {
-      return [];
+      return undefined;
     }
 
     const url = new URL(
@@ -128,7 +128,7 @@ export class HttpWardenContextAuthorizer
     });
 
     if (response.status === 404 || response.status === 501) {
-      return [];
+      return undefined;
     }
 
     if (!response.ok) {
