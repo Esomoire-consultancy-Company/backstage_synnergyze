@@ -35,7 +35,6 @@ const useStyles = makeStyles(theme => ({
     alignItems: 'center',
     padding: theme.spacing(0.5),
     borderRadius: theme.shape.borderRadius,
-    pointerEvents: 'none',
   },
 }));
 
@@ -77,14 +76,19 @@ export function SpotlightContextRibbon() {
         context.scope.companyRef;
 
   const expired = Date.parse(context.authorityExpiresAt) <= Date.now();
+  const degraded = Boolean(error) || expired;
 
   return (
     <Paper className={classes.root} elevation={2}>
       <Tooltip
-        title={`Warden: ${context.wardenDecisionRef} • River: ${context.riverSessionRef}`}
+        title={
+          error
+            ? `${error} • Warden: ${context.wardenDecisionRef}`
+            : `Warden: ${context.wardenDecisionRef} • River: ${context.riverSessionRef}`
+        }
       >
         <Chip
-          icon={expired ? <WarningIcon /> : <FlareIcon />}
+          icon={degraded ? <WarningIcon /> : <FlareIcon />}
           label={`Spotlight: ${scopeLabel} • ${context.role.toUpperCase()}`}
           size="small"
         />
