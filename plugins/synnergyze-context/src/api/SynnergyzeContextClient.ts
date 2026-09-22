@@ -31,6 +31,29 @@ type ClientOptions = {
   fetchApi: FetchApi;
 };
 
+function errorDetail(body: unknown): string | undefined {
+  if (!body || typeof body !== 'object') {
+    return undefined;
+  }
+
+  const value = body as Record<string, unknown>;
+  if (typeof value.error === 'string') {
+    return value.error;
+  }
+  if (typeof value.reason === 'string') {
+    return value.reason;
+  }
+  return undefined;
+}
+
+async function readJson(response: Response): Promise<unknown> {
+  try {
+    return await response.json();
+  } catch {
+    return undefined;
+  }
+}
+
 export class SynnergyzeContextClient implements SynnergyzeContextApi {
   constructor(private readonly options: ClientOptions) {}
 
@@ -42,32 +65,42 @@ export class SynnergyzeContextClient implements SynnergyzeContextApi {
     const response = await this.options.fetchApi.fetch(
       `${await this.baseUrl()}/context`,
     );
+    const body = await readJson(response);
 
-    if (response.status === 404) {
+    if (
+      response.status === 404 &&
+      errorDetail(body) === 'No active operating context'
+    ) {
       return undefined;
     }
 
     if (!response.ok) {
       throw new Error(
-        `Unable to load operating context (HTTP ${response.status})`,
+        errorDetail(body) ??
+          `Unable to load operating context (HTTP ${response.status})`,
       );
     }
 
-    return response.json() as Promise<OperatingContext>;
+    if (!body || typeof body !== 'object') {
+      throw new Error('Invalid operating-context response');
+    }
+
+    return body as OperatingContext;
   }
 
   async listEligibleContexts(): Promise<ContextOptionsResponse> {
     const response = await this.options.fetchApi.fetch(
       `${await this.baseUrl()}/context/options`,
     );
+    const body = await readJson(response);
 
     if (!response.ok) {
       throw new Error(
-        `Unable to load eligible contexts (HTTP ${response.status})`,
+        errorDetail(body) ??
+          `Unable to load eligible contexts (HTTP ${response.status})`,
       );
     }
 
-    const body = (await response.json()) as unknown;
     if (
       !body ||
       typeof body !== 'object' ||
@@ -91,24 +124,25 @@ export class SynnergyzeContextClient implements SynnergyzeContextApi {
         body: JSON.stringify(request),
       },
     );
-
-    const body = (await response.json()) as unknown;
+    const body = await readJson(response);
 
     if (response.status === 403) {
-      const reason =
-        body &&
-        typeof body === 'object' &&
-        typeof (body as Record<string, unknown>).reason === 'string'
-          ? String((body as Record<string, unknown>).reason)
-          : 'Warden denied the requested context';
-
-      return { authorized: false, reason };
+      return {
+        authorized: false,
+        reason:
+          errorDetail(body) ?? 'Warden denied the requested context',
+      };
     }
 
     if (!response.ok) {
       throw new Error(
-        `Unable to resolve operating context (HTTP ${response.status})`,
+        errorDetail(body) ??
+          `Unable to resolve operating context (HTTP ${response.status})`,
       );
+    }
+
+    if (!body || typeof body !== 'object') {
+      throw new Error('Invalid Warden authorization response');
     }
 
     return body as WardenAuthorizationResult;
@@ -125,27 +159,19 @@ export class SynnergyzeContextClient implements SynnergyzeContextApi {
         body: JSON.stringify(request),
       },
     );
+    const body = await readJson(response);
 
     if (!response.ok) {
-      let detail = '';
-      try {
-        const body = (await response.json()) as Record<string, unknown>;
-        detail =
-          typeof body.reason === 'string'
-            ? body.reason
-            : typeof body.error === 'string'
-              ? body.error
-              : '';
-      } catch {
-        detail = '';
-      }
-
       throw new Error(
-        detail ||
+        errorDetail(body) ??
           `Unable to activate operating context (HTTP ${response.status})`,
       );
     }
 
-    return response.json() as Promise<OperatingContext>;
+    if (!body || typeof body !== 'object') {
+      throw new Error('Invalid operating-context transition response');
+    }
+
+    return body as OperatingContext;
   }
 }
