@@ -54,10 +54,9 @@ export const alphaSynnergyzeContextModule = createBackendModule({
                 config.getOptionalString(
                   'synnergyze.context.warden.authorizePath',
                 ) ?? '/authorize',
-              listPath:
-                config.getOptionalString(
-                  'synnergyze.context.warden.optionsPath',
-                ) ?? '/contexts',
+              listPath: config.getOptionalString(
+                'synnergyze.context.warden.optionsPath',
+              ),
               bearerToken: config.getOptionalString(
                 'synnergyze.context.warden.bearerToken',
               ),
