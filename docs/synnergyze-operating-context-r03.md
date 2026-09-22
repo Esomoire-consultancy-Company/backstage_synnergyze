@@ -11,9 +11,12 @@ Enforced in this release:
 - Synnergyze billing-read authorization.
 - Permission-enforced billing query scope.
 
+Enforced transitively through Backstage's permission-aware Search path:
+
+- Catalog-backed Search result filtering.
+
 Not yet claimed as enforced:
 
-- Backstage Search result filtering.
 - Scaffolder action scoping.
 - Kubernetes/resource-provider scoping.
 - Frontend route/navigation hiding.
@@ -122,13 +125,27 @@ This response is a query-scope contract, not a billing ledger. A provider/billin
 
 A VOI Developer context should receive only the VOI resource through Catalog conditional filtering. Admin should receive both.
 
-## Search boundary
+## Search enforcement
 
-Current Backstage Search in this baseline does not expose a native Search permission resource equivalent to Catalog's `catalog-entity` conditional permissions.
+The current Backstage Search backend wraps its engine with `AuthorizedSearchEngine` when `permission.enabled: true`.
 
-Therefore R0.3 does **not** claim that Catalog filtering automatically secures Search. The next Search adapter must inject mandatory operating-context filters into the Search query path or post-filter results against authorized catalog/entity scope before returning them.
+The catalog collator publishes each search document with:
 
-Until that adapter exists, Search must not be treated as a scoped security boundary for company-confidential data.
+- `catalogEntityReadPermission` as the visibility permission, and
+- the catalog entity reference as the authorization resource.
+
+The BNR overlay now enables:
+
+```yaml
+permission:
+  enabled: true
+```
+
+Therefore the Developer catalog conditional decision is evaluated against individual catalog-backed search results. A VOI Developer cannot receive an Esomoire catalog search result merely because it exists in the search index.
+
+No custom Search fork is required for catalog-backed documents.
+
+This statement applies only to document types that declare a visibility permission and authorization resource. New search document types must not be assumed scoped until they provide equivalent permission metadata.
 
 ## Acceptance criteria
 
@@ -142,7 +159,7 @@ R0.3 is accepted when:
 6. Billing scope cannot be resolved without `synnergyze.billing.read`.
 7. Billing scope is derived from the same active context used by the policy.
 8. A VOI Developer cannot retrieve the Esomoire proof resource through Catalog conditional authorization.
-9. The known Search boundary is explicitly documented rather than implied secure.
+9. Catalog-backed Search is permission-aware and applies the same Developer company condition.
 
 ## Build note
 
