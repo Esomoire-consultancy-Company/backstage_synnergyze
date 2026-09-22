@@ -68,7 +68,16 @@ export async function createRouter(
     }
 
     const principal = await principalFor(req);
-    const request = parseContextRequest(req.body);
+    let request;
+    try {
+      request = parseContextRequest(req.body);
+    } catch (error) {
+      res.status(400).json({
+        error: error instanceof Error ? error.message : 'Invalid context request',
+      });
+      return;
+    }
+
     const result = await options.authorizer.authorize({
       principal,
       request,
@@ -111,7 +120,16 @@ export async function createRouter(
     }
 
     const principal = await principalFor(req);
-    const request = parseContextRequest(req.body);
+    let request;
+    try {
+      request = parseContextRequest(req.body);
+    } catch (error) {
+      res.status(400).json({
+        error: error instanceof Error ? error.message : 'Invalid context request',
+      });
+      return;
+    }
+
     const previousContext = await store.get(principal);
 
     const authorization = await options.authorizer.authorize({
@@ -158,12 +176,6 @@ export async function createRouter(
 
     await store.set(context);
     res.json(context);
-  });
-
-  router.delete('/context', async (req, res) => {
-    const principal = await principalFor(req);
-    await store.clear(principal);
-    res.status(204).end();
   });
 
   return router;
