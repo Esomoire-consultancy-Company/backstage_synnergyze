@@ -44,7 +44,7 @@ spec:
 apiVersion: backstage.io/v1alpha1
 kind: User
 metadata:
-  name: Esomoire-consultancy-Company
+  name: esomoire-consultancy-company
   title: Faiz Ahmed
   description: Synnergyze Backstage principal with developer as the default operating context.
   annotations:
