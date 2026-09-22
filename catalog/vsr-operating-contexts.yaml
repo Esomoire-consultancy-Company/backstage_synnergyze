@@ -93,6 +93,15 @@ spec:
                 application/json:
                   schema:
                     $ref: '#/components/schemas/OperatingContext'
+      /billing/scope:
+        get:
+          operationId: getBillingScope
+          description: Resolve the permission-enforced billing query scope for the active operating context.
+          responses:
+            '200':
+              description: Authorized Estate or company billing query scope
+            '403':
+              description: Billing access is not authorized
       /context/resolve:
         post:
           operationId: resolveContext
