@@ -112,19 +112,13 @@ describe('SynnergyzeContextClient', () => {
   });
 
   it('sends the exact transition request and returns the active context', async () => {
+    let transitionBody: unknown;
+
     server.use(
       http.post(
         `${baseUrl}/context/transition`,
         async ({ request }) => {
-          expect(await request.json()).toEqual({
-            role: 'developer',
-            scope: {
-              type: 'company',
-              companyRef: 'company:default/voi-jeans',
-              workspaceRef: 'workspace:default/retail',
-            },
-            spotlightRef: 'spotlight:voi-retail',
-          });
+          transitionBody = await request.json();
 
           return HttpResponse.json({
             principal: 'user:default/faiz',
@@ -161,5 +155,72 @@ describe('SynnergyzeContextClient', () => {
         riverSessionRef: 'river:session:001',
       }),
     );
+
+    expect(transitionBody).toEqual({
+      role: 'developer',
+      scope: {
+        type: 'company',
+        companyRef: 'company:default/voi-jeans',
+        workspaceRef: 'workspace:default/retail',
+      },
+      spotlightRef: 'spotlight:voi-retail',
+    });
+  });
+
+  it('does not treat an arbitrary 404 as no active context', async () => {
+    server.use(
+      http.get(`${baseUrl}/context`, () =>
+        HttpResponse.json(
+          { error: 'Route not found' },
+          { status: 404 },
+        ),
+      ),
+    );
+
+    await expect(client.getActiveContext()).rejects.toThrow(
+      'Route not found',
+    );
+  });
+
+  it('preserves server detail for resolve failures', async () => {
+    server.use(
+      http.post(`${baseUrl}/context/resolve`, () =>
+        HttpResponse.json(
+          { error: 'No Warden context authorizer is registered' },
+          { status: 503 },
+        ),
+      ),
+    );
+
+    await expect(
+      client.resolveContext({
+        role: 'developer',
+        scope: {
+          type: 'company',
+          companyRef: 'company:default/voi-jeans',
+        },
+      }),
+    ).rejects.toThrow('No Warden context authorizer is registered');
+  });
+
+  it('handles a non-JSON resolve failure without leaking a JSON parse error', async () => {
+    server.use(
+      http.post(`${baseUrl}/context/resolve`, () =>
+        new HttpResponse('<html>proxy error</html>', {
+          status: 502,
+          headers: { 'content-type': 'text/html' },
+        }),
+      ),
+    );
+
+    await expect(
+      client.resolveContext({
+        role: 'developer',
+        scope: {
+          type: 'company',
+          companyRef: 'company:default/voi-jeans',
+        },
+      }),
+    ).rejects.toThrow('Unable to resolve operating context (HTTP 502)');
   });
 });
