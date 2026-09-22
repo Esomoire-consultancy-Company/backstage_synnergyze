@@ -95,7 +95,11 @@ synnergyze:
       optionsPath: /contexts
 ```
 
-Expected Warden discovery response may be either an array or:
+`optionsPath` is opt-in. If it is omitted, the Backstage endpoint reports `discoveryAvailable: false` and manual scope entry remains available.
+
+For discovery calls, the backend sends the authenticated principal to Warden in the `x-synnergyze-principal` request header rather than placing the principal in the URL.
+
+The **upstream Warden** discovery response may be either an array or:
 
 ```json
 {
@@ -115,6 +119,36 @@ Expected Warden discovery response may be either an array or:
 ```
 
 These entries are selectable candidates only. Selecting one does not bypass Warden preview or transition authorization.
+
+The **Backstage** endpoint always normalizes discovery to:
+
+```json
+{
+  "discoveryAvailable": true,
+  "options": [
+    {
+      "id": "voi-developer",
+      "label": "VOI Jeans — Developer",
+      "role": "developer",
+      "scope": {
+        "type": "company",
+        "companyRef": "company:default/voi-jeans"
+      }
+    }
+  ]
+}
+```
+
+When discovery is not configured or Warden explicitly reports it unsupported:
+
+```json
+{
+  "discoveryAvailable": false,
+  "options": []
+}
+```
+
+If no Warden authorizer is configured, the endpoint returns `503`. If a configured Warden discovery call fails or is malformed, Backstage returns a controlled `502` error.
 
 If Warden discovery is unsupported, the UI allows manual scope entry. Manual requests are subject to the same Warden preview and transition gates.
 
