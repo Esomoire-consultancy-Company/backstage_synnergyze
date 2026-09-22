@@ -11,7 +11,7 @@ import {
   WardenContextAuthorizer,
 } from '@esomoire/backstage-plugin-synnergyze-context-node';
 
-type HttpProviderOptions = {
+export type HttpProviderOptions = {
   baseUrl: string;
   path: string;
   bearerToken?: string;
