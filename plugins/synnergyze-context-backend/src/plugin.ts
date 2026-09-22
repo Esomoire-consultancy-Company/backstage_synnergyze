@@ -62,13 +62,21 @@ export const synnergyzeContextPlugin = createBackendPlugin({
         userInfo: coreServices.userInfo,
         httpRouter: coreServices.httpRouter,
         contextService: synnergyzeOperatingContextServiceRef,
+        permissions: coreServices.permissions,
       },
-      async init({ httpAuth, userInfo, httpRouter, contextService }) {
+      async init({
+        httpAuth,
+        userInfo,
+        httpRouter,
+        contextService,
+        permissions,
+      }) {
         httpRouter.use(
           await createRouter({
             httpAuth,
             userInfo,
             store: contextService,
+            permissions,
             authorizer: authorization.authorizer,
             observer: observation.observer,
           }),
