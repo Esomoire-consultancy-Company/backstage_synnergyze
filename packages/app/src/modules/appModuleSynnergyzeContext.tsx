@@ -26,8 +26,17 @@ const contextWrapper = AppRootWrapperBlueprint.make({
   params: {
     component: ({ children }) => (
       <OperatingContextProvider>
-        <SpotlightContextRibbon />
-        {children}
+        <div
+          style={{
+            display: 'flex',
+            flexDirection: 'column',
+            height: '100vh',
+            width: '100%',
+          }}
+        >
+          <SpotlightContextRibbon />
+          <div style={{ flex: 1, minHeight: 0 }}>{children}</div>
+        </div>
       </OperatingContextProvider>
     ),
   },
