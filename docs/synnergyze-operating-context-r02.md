@@ -33,7 +33,6 @@ Mounted under the Backstage plugin route for `synnergyze-context`:
 - `GET /context` — current active context for the authenticated principal.
 - `POST /context/resolve` — Warden evaluation without activation.
 - `POST /context/transition` — Warden authorization, River observation, then activation.
-- `DELETE /context` — clear the local active context.
 - `GET /health` — reports whether authorization and observation providers are registered.
 
 ## Transition sequence
