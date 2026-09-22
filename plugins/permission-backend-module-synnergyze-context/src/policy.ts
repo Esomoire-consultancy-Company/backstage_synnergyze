@@ -115,12 +115,34 @@ export class SynnergyzeContextPermissionPolicy implements PermissionPolicy {
     }
 
     if (isCatalogResource && context.scope.type === 'company') {
-      return createCatalogConditionalDecision(
-        request.permission,
+      const conditions = [
         catalogConditions.hasAnnotation({
           annotation: COMPANY_ANNOTATION,
           value: context.scope.companyRef,
         }),
+      ];
+
+      if (context.scope.workspaceRef) {
+        conditions.push(
+          catalogConditions.hasAnnotation({
+            annotation: 'vsr.esomoire.io/workspace-ref',
+            value: context.scope.workspaceRef,
+          }),
+        );
+      }
+
+      if (context.scope.projectRef) {
+        conditions.push(
+          catalogConditions.hasAnnotation({
+            annotation: 'vsr.esomoire.io/project-ref',
+            value: context.scope.projectRef,
+          }),
+        );
+      }
+
+      return createCatalogConditionalDecision(
+        request.permission,
+        conditions.length === 1 ? conditions[0] : { allOf: conditions },
       );
     }
 
