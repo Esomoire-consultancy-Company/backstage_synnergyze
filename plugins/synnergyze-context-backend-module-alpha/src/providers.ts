@@ -73,13 +73,29 @@ function parseContextOption(value: unknown): OperatingContextOption {
     spotlightRef: input.spotlightRef,
   });
 
-  return {
+  const base = {
     id: requireString(input.id, 'contextOption.id'),
     label: requireString(input.label, 'contextOption.label'),
-    role: request.role,
-    scope: request.scope,
     ...(request.spotlightRef ? { spotlightRef: request.spotlightRef } : {}),
   };
+
+  if (request.role === 'admin' && request.scope.type === 'estate') {
+    return {
+      ...base,
+      role: 'admin',
+      scope: request.scope,
+    };
+  }
+
+  if (request.role === 'developer' && request.scope.type === 'company') {
+    return {
+      ...base,
+      role: 'developer',
+      scope: request.scope,
+    };
+  }
+
+  throw new Error('Warden context option has an invalid role/scope pairing');
 }
 
 function parseWardenDecision(value: unknown): WardenContextDecision {
@@ -133,18 +149,27 @@ export class HttpWardenContextAuthorizer
       return undefined;
     }
 
-    const url = new URL(
-      endpointFor(this.#options.baseUrl, this.#options.listPath),
+    const url = endpointFor(
+      this.#options.baseUrl,
+      this.#options.listPath,
     );
-    url.searchParams.set('principal', input.principal);
 
     const response = await fetch(url, {
       method: 'GET',
-      headers: headers(this.#options.bearerToken),
+      headers: {
+        ...headers(this.#options.bearerToken),
+        'x-synnergyze-principal': input.principal,
+      },
     });
 
-    if (response.status === 404 || response.status === 501) {
+    if (response.status === 501) {
       return undefined;
+    }
+
+    if (response.status === 404) {
+      throw new Error(
+        'Configured Warden context discovery endpoint was not found',
+      );
     }
 
     if (!response.ok) {
@@ -167,7 +192,17 @@ export class HttpWardenContextAuthorizer
       throw new Error('Warden context discovery response must contain options');
     }
 
-    return rawOptions.map(parseContextOption);
+    return rawOptions.map((option, index) => {
+      try {
+        return parseContextOption(option);
+      } catch (error) {
+        const detail =
+          error instanceof Error ? error.message : String(error);
+        throw new Error(
+          `Warden context option[${index}] is invalid: ${detail}`,
+        );
+      }
+    });
   }
 
   async authorize(input: {
