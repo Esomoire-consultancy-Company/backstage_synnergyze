@@ -179,14 +179,16 @@ export class HttpWardenContextAuthorizer
     }
 
     const body = await readJson(response);
-    const rawOptions =
-      Array.isArray(body)
-        ? body
-        : body &&
-            typeof body === 'object' &&
-            Array.isArray((body as Record<string, unknown>).options)
-          ? (body as Record<string, unknown>).options
-          : undefined;
+    let rawOptions: unknown[] | undefined;
+
+    if (Array.isArray(body)) {
+      rawOptions = body;
+    } else if (body && typeof body === 'object') {
+      const options = (body as Record<string, unknown>).options;
+      if (Array.isArray(options)) {
+        rawOptions = options;
+      }
+    }
 
     if (!rawOptions) {
       throw new Error('Warden context discovery response must contain options');
