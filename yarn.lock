@@ -10050,6 +10050,15 @@ __metadata:
   languageName: unknown
   linkType: soft
 
+"@internal/plugin-mcp-deployment-handoff-backend@workspace:plugins/mcp-deployment-handoff-backend":
+  version: 0.0.0-use.local
+  resolution: "@internal/plugin-mcp-deployment-handoff-backend@workspace:plugins/mcp-deployment-handoff-backend"
+  dependencies:
+    "@backstage/backend-plugin-api": "workspace:^"
+    "@backstage/cli": "workspace:^"
+  languageName: unknown
+  linkType: soft
+
 "@internal/plugin-todo-list-backend@workspace:plugins/example-todo-list-backend":
   version: 0.0.0-use.local
   resolution: "@internal/plugin-todo-list-backend@workspace:plugins/example-todo-list-backend"
