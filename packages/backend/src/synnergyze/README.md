@@ -108,3 +108,28 @@ execution   = EMULATED_LOCAL
 Provider discovery is intentionally non-authoritative for Warden and River.
 It reports provider runtime state only. A subsequent execution path must carry
 the Warden decision reference, provider receipt, and River evidence references.
+
+
+## Client Admin and VSR Developer control model
+
+Effective 2026-09-23, client administration and VSR engineering are distinct
+authority contexts:
+
+- **CLIENT_ADMIN** operates the client's bounded estate through the VSR account.
+  The Genesis tab controls the client's eligible network/nodes/provider
+  bindings; the Synnergyze tab controls workspaces, services, usage and
+  workspace-to-node assignment.
+- **VSR_DEVELOPER** is a VSR-team engineering role. It can provision, repair,
+  upgrade, integrate and diagnose only within its own standing scope or an
+  explicit Warden-authorized developer support session.
+- **VSR_ESTATE_ADMIN** is reserved for estate-wide governance. It must never be
+  inferred from the client's Admin label.
+
+The existing `synnergyze-admins` catalog group is retained as a legacy estate
+context so existing references do not silently change meaning. New client
+administration uses `synnergyze-client-admins` and is always bounded by a
+client reference and Warden authority.
+
+The VSR client account is the presentation surface. Genesis and Synnergyze
+remain control-plane sources; client pages are governed projections rather
+than a second canonical database.
