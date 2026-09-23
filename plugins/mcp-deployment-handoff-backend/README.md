@@ -16,7 +16,7 @@ The producer creates a `NOT_READY` handoff and submits upstream evidence to reac
 ID for a new attempt. Every decision evaluates the configured receiver contract
 and records the receiver, reason, outcome, and contract reference.
 
-Acceptance additionally requires nonblank Warden decision and River evidence
+Acceptance additionally requires non-empty Warden decision and River evidence
 references and successful evaluations by both external ports. Submission may lack
 these references, but such a handoff cannot be accepted. This slice intentionally
 does not allow evidence edits after submission. Exceptions or negative evaluations
