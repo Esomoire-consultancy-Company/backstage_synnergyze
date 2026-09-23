@@ -1,0 +1,24 @@
+# Synnergyze Alpha provider-discovery overlay.
+#
+# Use with the normal Backstage config, for example:
+#   yarn start example-backend --config ../../app-config.yaml --config ../../app-config.localstack.yaml
+#
+# LocalStack is an AWS-compatible execution provider, not the canonical AWS
+# provider itself. Provider execution truth, Warden authority, and River
+# evidence remain separate.
+
+synnergyze:
+  node:
+    id: ${SYNNERGYZE_NODE_ID}
+
+  capabilityDiscovery:
+    localstack:
+      enabled: true
+      endpoint: ${LOCALSTACK_ENDPOINT}
+      timeoutMs: 3000
+
+integrations:
+  awsS3:
+    - endpoint: ${AWS_S3_ENDPOINT}
+      accessKeyId: ${AWS_ACCESS_KEY_ID}
+      secretAccessKey: ${AWS_SECRET_ACCESS_KEY}
