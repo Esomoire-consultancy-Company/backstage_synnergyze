@@ -36,7 +36,7 @@ echo "== 5. Targeted tests =="
 for workspace in   @esomoire/backstage-plugin-synnergyze-context-common   @esomoire/backstage-plugin-synnergyze-context-node   @esomoire/backstage-plugin-synnergyze-context-backend   @esomoire/backstage-plugin-permission-backend-module-synnergyze-context   @esomoire/backstage-plugin-synnergyze-context
 do
   echo "-- test $workspace"
-  $YARN workspace "$workspace" test --runInBand
+  CI=true $YARN workspace "$workspace" test --runInBand
 done
 
 echo
