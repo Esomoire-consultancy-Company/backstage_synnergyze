@@ -4,16 +4,7 @@ import { VsrClientControlPage } from './VsrClientControlPage';
 
 describe('VsrClientControlPage', () => {
   it('renders Genesis, Synnergyze and Warden control surfaces', async () => {
-    await renderInTestApp(<VsrClientControlPage />, {
-      mountedRoutes: {
-        '/vsr/clients/:clientRef': '/vsr/clients/CLIENT-001',
-      },
-      config: {
-        vsr: {
-          clientBaseUrl: 'https://vsr.example',
-        },
-      },
-    });
+    await renderInTestApp(<VsrClientControlPage />);
 
     expect(screen.getByText('VSR Client Control')).toBeInTheDocument();
     expect(screen.getByRole('tab', { name: 'Genesis' })).toBeInTheDocument();
