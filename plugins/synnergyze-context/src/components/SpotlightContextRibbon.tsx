@@ -85,7 +85,12 @@ export function SpotlightContextRibbon() {
         context.scope.companyRef;
 
   const expired = Date.parse(context.authorityExpiresAt) <= Date.now();
-  const status = expired ? 'EXPIRED' : error ? 'DEGRADED' : 'ACTIVE';
+  let status: 'ACTIVE' | 'DEGRADED' | 'EXPIRED' = 'ACTIVE';
+  if (expired) {
+    status = 'EXPIRED';
+  } else if (error) {
+    status = 'DEGRADED';
+  }
   const degraded = status !== 'ACTIVE';
   const visibleLabel =
     status === 'ACTIVE'
