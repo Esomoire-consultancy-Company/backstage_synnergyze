@@ -70,10 +70,13 @@ export class SynnergyzeContextPermissionPolicy implements PermissionPolicy {
     request: PolicyQuery,
     user?: PolicyQueryUser,
   ): Promise<PolicyDecision> {
-    const isCatalogResource = isResourcePermission(
+    const catalogPermission = isResourcePermission(
       request.permission,
       'catalog-entity',
-    );
+    )
+      ? request.permission
+      : undefined;
+    const isCatalogResource = Boolean(catalogPermission);
     const isBillingRead = isPermission(
       request.permission,
       synnergyzeBillingReadPermission,
@@ -120,7 +123,7 @@ export class SynnergyzeContextPermissionPolicy implements PermissionPolicy {
       return { result: AuthorizeResult.DENY };
     }
 
-    if (isCatalogResource && context.scope.type === 'company') {
+    if (catalogPermission && context.scope.type === 'company') {
       const conditions = [
         catalogConditions.hasAnnotation({
           annotation: COMPANY_ANNOTATION,
@@ -147,7 +150,7 @@ export class SynnergyzeContextPermissionPolicy implements PermissionPolicy {
       }
 
       return createCatalogConditionalDecision(
-        request.permission,
+        catalogPermission,
         conditions.length === 1 ? conditions[0] : { allOf: conditions },
       );
     }
