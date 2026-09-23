@@ -54,6 +54,8 @@ import devtoolsPlugin from '@backstage/plugin-devtools/alpha';
 import { unprocessedEntitiesDevToolsContent } from '@backstage/plugin-catalog-unprocessed-entities/alpha';
 import catalogPlugin from '@backstage/plugin-catalog/alpha';
 import InfoIcon from '@material-ui/icons/Info';
+import { VsrClientControlPage } from './vsr/VsrClientControlPage';
+import { VsrClientAccountPage } from './vsr/VsrClientAccountPage';
 
 /*
 
@@ -163,6 +165,9 @@ const devtoolsPluginUnprocessed = createFrontendModule({
 const collectedLegacyPlugins = convertLegacyAppRoot(
   <FlatRoutes>
     <Route path="/catalog-import" element={<CatalogImportPage />} />
+    <Route path="/vsr/clients/:clientRef" element={<VsrClientControlPage />} />
+    <Route path="/vsr/clients" element={<VsrClientControlPage />} />
+    <Route path="/account/:clientRef" element={<VsrClientAccountPage />} />
   </FlatRoutes>,
 );
 
