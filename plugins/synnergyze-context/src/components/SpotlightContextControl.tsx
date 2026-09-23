@@ -328,9 +328,13 @@ export function SpotlightContextControl() {
           }
         >
           {sidebarOpen ? (
-            <span className={classes.triggerText}>
+            <Typography
+              component="span"
+              variant="body2"
+              className={classes.triggerText}
+            >
               {loading ? 'Loading Spotlight…' : activeLabel}
-            </span>
+            </Typography>
           ) : null}
         </Button>
       </Tooltip>
