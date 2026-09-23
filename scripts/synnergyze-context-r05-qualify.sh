@@ -20,7 +20,11 @@ echo "== 2. Immutable install proof =="
 $YARN install --immutable
 
 echo
-echo "== 3. Targeted package builds =="
+echo "== 3. Type declaration generation =="
+$YARN tsc
+
+echo
+echo "== 4. Targeted package builds =="
 for workspace in   @esomoire/backstage-plugin-synnergyze-context-common   @esomoire/backstage-plugin-synnergyze-context-node   @esomoire/backstage-plugin-synnergyze-context-backend   @esomoire/backstage-plugin-synnergyze-context-backend-module-alpha   @esomoire/backstage-plugin-permission-backend-module-synnergyze-context   @esomoire/backstage-plugin-synnergyze-context
 do
   echo "-- build $workspace"
@@ -28,7 +32,7 @@ do
 done
 
 echo
-echo "== 4. Targeted tests =="
+echo "== 5. Targeted tests =="
 for workspace in   @esomoire/backstage-plugin-synnergyze-context-common   @esomoire/backstage-plugin-synnergyze-context-node   @esomoire/backstage-plugin-synnergyze-context-backend   @esomoire/backstage-plugin-permission-backend-module-synnergyze-context   @esomoire/backstage-plugin-synnergyze-context
 do
   echo "-- test $workspace"
@@ -36,7 +40,7 @@ do
 done
 
 echo
-echo "== 5. Targeted lint =="
+echo "== 6. Targeted lint =="
 for workspace in   @esomoire/backstage-plugin-synnergyze-context-common   @esomoire/backstage-plugin-synnergyze-context-node   @esomoire/backstage-plugin-synnergyze-context-backend   @esomoire/backstage-plugin-synnergyze-context-backend-module-alpha   @esomoire/backstage-plugin-permission-backend-module-synnergyze-context   @esomoire/backstage-plugin-synnergyze-context
 do
   echo "-- lint $workspace"
@@ -44,12 +48,12 @@ do
 done
 
 echo
-echo "== 6. Integrated app/backend build =="
+echo "== 7. Integrated app/backend build =="
 $YARN workspace example-app build
 $YARN workspace example-backend build
 
 echo
-echo "== 7. Repository metadata checks =="
+echo "== 8. Repository metadata checks =="
 $YARN backstage-repo-tools generate-catalog-info --ci
 $YARN prettier --check   packages/app/src/App.tsx   packages/app/src/modules/appModuleNav.tsx   packages/app/src/modules/appModuleSynnergyzeContext.tsx   plugins/synnergyze-context*   plugins/permission-backend-module-synnergyze-context   docs/synnergyze-operating-context-r0*.md   catalog/vsr-operating-contexts.yaml
 
