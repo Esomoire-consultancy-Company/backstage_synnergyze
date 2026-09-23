@@ -10,6 +10,7 @@ spec:
     displayName: Esomoire
   children:
     - synnergyze-developers
+    - synnergyze-client-admins
     - synnergyze-admins
 
 ---
@@ -17,8 +18,8 @@ apiVersion: backstage.io/v1alpha1
 kind: Group
 metadata:
   name: synnergyze-developers
-  title: Synnergyze Developers
-  description: Scoped developer context for client, company, project, API, deployment, runtime usage, and billing work.
+  title: VSR / Synnergyze Developers
+  description: VSR-team engineering context for provisioning, integration, deployment, repair, diagnostics, and authorized client support.
 spec:
   type: team
   profile:
@@ -30,13 +31,35 @@ spec:
 apiVersion: backstage.io/v1alpha1
 kind: Group
 metadata:
-  name: synnergyze-admins
-  title: Synnergyze Admins
-  description: Estate-wide administration and governance context.
+  name: synnergyze-client-admins
+  title: Synnergyze Client Admins
+  description: Client-side administrators who operate only their own Warden-bounded estate; Genesis controls the network and Synnergyze controls workspaces.
+  annotations:
+    vsr.synnergyze.io/role: client-admin
+    vsr.synnergyze.io/scope: bounded-client-estate
+    vsr.synnergyze.io/authority: warden
 spec:
   type: team
   profile:
-    displayName: Synnergyze Admins
+    displayName: Synnergyze Client Admins
+  parent: esomoire
+  children: []
+
+---
+apiVersion: backstage.io/v1alpha1
+kind: Group
+metadata:
+  name: synnergyze-admins
+  title: Synnergyze Estate Admins (Legacy Context)
+  description: Estate-wide administration context retained for compatibility; it is not the client Admin role.
+  annotations:
+    vsr.synnergyze.io/status: legacy-context
+    vsr.synnergyze.io/superseded-by: synnergyze-client-admins-for-client-administration
+    vsr.synnergyze.io/effective-date: '2026-09-23'
+spec:
+  type: team
+  profile:
+    displayName: Synnergyze Estate Admins
   parent: esomoire
   children: []
 
@@ -51,14 +74,14 @@ metadata:
     github.com/user-login: Esomoire-consultancy-Company
     github.com/user-id: '193629930'
     vsr.synnergyze.io/default-context: developer
-    vsr.synnergyze.io/roles: admin,developer
+    vsr.synnergyze.io/roles: developer
+    vsr.synnergyze.io/team: vsr
 spec:
   profile:
     displayName: Faiz Ahmed
     email: faiz@esomoire.com
   memberOf:
     - synnergyze-developers
-    - synnergyze-admins
 
 ---
 apiVersion: backstage.io/v1alpha1
