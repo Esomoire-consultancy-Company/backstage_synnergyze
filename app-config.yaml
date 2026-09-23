@@ -189,6 +189,10 @@ catalog:
       target: ../../catalog/synnergyze-developer-account.yaml
       rules:
         - allow: [User, Group, Component, Resource]
+    - type: file
+      target: ../../catalog/vsr-client-control-contract.yaml
+      rules:
+        - allow: [Resource]
 
     # Backstage example entities
     - type: file
