@@ -1,0 +1,37 @@
+apiVersion: backstage.io/v1alpha1
+kind: Resource
+metadata:
+  name: vsr-client-control-contract-r0-1
+  title: VSR Client Control Contract R0.1
+  description: Client Admin operates the bounded client estate; VSR Developer engineers it only through Warden-authorized sessions.
+  annotations:
+    vsr.synnergyze.io/effective-date: '2026-09-23'
+    vsr.synnergyze.io/client-admin-scope: bounded-client-estate
+    vsr.synnergyze.io/vsr-developer-scope: engineering-support
+    vsr.synnergyze.io/genesis-client-function: network-control
+    vsr.synnergyze.io/synnergyze-client-function: workspace-control
+    vsr.synnergyze.io/developer-access-gate: warden-decision
+    vsr.synnergyze.io/evidence-system: riveros
+spec:
+  type: governance-contract
+  owner: group:default/esomoire
+  system: synnergyze-client-assurance-cockpit
+
+---
+apiVersion: backstage.io/v1alpha1
+kind: Resource
+metadata:
+  name: vsr-client-projection-contract-r0-1
+  title: VSR Client Projection Contract R0.1
+  description: Developer/control-plane state projects into the client's Virtual Silk Road account without creating a second canonical client database.
+  annotations:
+    vsr.synnergyze.io/effective-date: '2026-09-23'
+    vsr.synnergyze.io/frontend: virtual-silk-road
+    vsr.synnergyze.io/genesis-route-family: genesis
+    vsr.synnergyze.io/synnergyze-route-family: synnergyze
+    vsr.synnergyze.io/projection-authority: warden
+    vsr.synnergyze.io/projection-evidence: riveros
+spec:
+  type: data-contract
+  owner: group:default/esomoire
+  system: synnergyze-client-assurance-cockpit
