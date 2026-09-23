@@ -124,34 +124,44 @@ export class SynnergyzeContextPermissionPolicy implements PermissionPolicy {
     }
 
     if (catalogPermission && context.scope.type === 'company') {
-      const conditions = [
-        catalogConditions.hasAnnotation({
-          annotation: COMPANY_ANNOTATION,
-          value: context.scope.companyRef,
-        }),
-      ];
-
-      if (context.scope.workspaceRef) {
-        conditions.push(
-          catalogConditions.hasAnnotation({
+      const companyCondition = catalogConditions.hasAnnotation({
+        annotation: COMPANY_ANNOTATION,
+        value: context.scope.companyRef,
+      });
+      const workspaceCondition = context.scope.workspaceRef
+        ? catalogConditions.hasAnnotation({
             annotation: 'vsr.esomoire.io/workspace-ref',
             value: context.scope.workspaceRef,
-          }),
-        );
-      }
-
-      if (context.scope.projectRef) {
-        conditions.push(
-          catalogConditions.hasAnnotation({
+          })
+        : undefined;
+      const projectCondition = context.scope.projectRef
+        ? catalogConditions.hasAnnotation({
             annotation: 'vsr.esomoire.io/project-ref',
             value: context.scope.projectRef,
-          }),
-        );
+          })
+        : undefined;
+
+      if (workspaceCondition && projectCondition) {
+        return createCatalogConditionalDecision(catalogPermission, {
+          allOf: [companyCondition, workspaceCondition, projectCondition],
+        });
+      }
+
+      if (workspaceCondition) {
+        return createCatalogConditionalDecision(catalogPermission, {
+          allOf: [companyCondition, workspaceCondition],
+        });
+      }
+
+      if (projectCondition) {
+        return createCatalogConditionalDecision(catalogPermission, {
+          allOf: [companyCondition, projectCondition],
+        });
       }
 
       return createCatalogConditionalDecision(
         catalogPermission,
-        conditions.length === 1 ? conditions[0] : { allOf: conditions },
+        companyCondition,
       );
     }
 
