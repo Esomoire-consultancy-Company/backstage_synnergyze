@@ -76,3 +76,35 @@ surface      = PROVIDER_API
 signal       = INFERENCE_COMPLETED
 signalClass  = RECEIPT
 ```
+
+
+## LocalStack capability discovery
+
+The backend now includes a provider-discovery module for the Alpha LocalStack
+runtime. Enable it with `app-config.localstack.yaml` and environment values
+such as:
+
+```text
+SYNNERGYZE_NODE_ID=ALPHA-NODE-001
+LOCALSTACK_ENDPOINT=http://localhost.localstack.cloud:4566
+AWS_S3_ENDPOINT=http://s3.localhost.localstack.cloud:4566
+AWS_ACCESS_KEY_ID=test
+AWS_SECRET_ACCESS_KEY=test
+```
+
+Discovery reads LocalStack's `/_localstack/health` provider surface and
+normalizes each discovered AWS-compatible capability into the canonical
+Synnergyze taxonomy:
+
+```text
+domain      = CLOUD
+surface     = PROVIDER_API
+signal      = CAPABILITY_DISCOVERED
+signalClass = STATE
+provider    = localstack
+execution   = EMULATED_LOCAL
+```
+
+Provider discovery is intentionally non-authoritative for Warden and River.
+It reports provider runtime state only. A subsequent execution path must carry
+the Warden decision reference, provider receipt, and River evidence references.
