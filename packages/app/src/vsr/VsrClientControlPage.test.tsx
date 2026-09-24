@@ -9,6 +9,8 @@ describe('VsrClientControlPage', () => {
     expect(screen.getByText('VSR Client Control')).toBeInTheDocument();
     expect(screen.getByRole('tab', { name: 'Genesis' })).toBeInTheDocument();
     expect(screen.getByRole('tab', { name: 'Synnergyze' })).toBeInTheDocument();
-    expect(screen.getByRole('tab', { name: 'Warden Live' })).toBeInTheDocument();
+    expect(
+      screen.getByRole('tab', { name: 'Warden Live' }),
+    ).toBeInTheDocument();
   });
 });

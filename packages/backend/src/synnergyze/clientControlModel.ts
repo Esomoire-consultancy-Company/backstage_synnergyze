@@ -56,8 +56,7 @@ export const VSR_DEVELOPER_CAPABILITIES = [
   'RIVER_APPEND_ENGINEERING_EVIDENCE',
 ] as const;
 
-export type ClientAdminCapability =
-  (typeof CLIENT_ADMIN_CAPABILITIES)[number];
+export type ClientAdminCapability = (typeof CLIENT_ADMIN_CAPABILITIES)[number];
 export type VsrDeveloperCapability =
   (typeof VSR_DEVELOPER_CAPABILITIES)[number];
 
@@ -99,9 +98,7 @@ export interface ClientProjectionLink {
   projectedAt?: string;
 }
 
-export function assertClientControlContext(
-  value: ClientControlContext,
-): void {
+export function assertClientControlContext(value: ClientControlContext): void {
   if (!value.clientRef) throw new Error('clientRef is required');
   if (!value.actorRef) throw new Error('actorRef is required');
   if (!CONTROL_ROLES.includes(value.role)) {

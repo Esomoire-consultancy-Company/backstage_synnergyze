@@ -78,7 +78,9 @@ describe('LocalStack capability discovery', () => {
   it('fails explicitly when provider health is unavailable', async () => {
     const fetchImpl = jest
       .fn()
-      .mockResolvedValue(new Response('unavailable', { status: 503 })) as unknown as typeof fetch;
+      .mockResolvedValue(
+        new Response('unavailable', { status: 503 }),
+      ) as unknown as typeof fetch;
 
     await expect(
       discoverLocalStackCapabilities({

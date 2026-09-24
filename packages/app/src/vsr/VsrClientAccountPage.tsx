@@ -7,14 +7,7 @@ import {
   InfoCard,
   Page,
 } from '@backstage/core-components';
-import {
-  Box,
-  Chip,
-  Grid,
-  Tab,
-  Tabs,
-  Typography,
-} from '@material-ui/core';
+import { Box, Chip, Grid, Tab, Tabs, Typography } from '@material-ui/core';
 
 type ClientTab = 'overview' | 'genesis' | 'synnergyze' | 'warden';
 
