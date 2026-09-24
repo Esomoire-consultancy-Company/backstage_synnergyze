@@ -70,7 +70,10 @@ export class DeploymentHandoffService {
       requireText(identity[field], field);
     }
     const { contract } = this.options;
-    if (actor !== identity.producer || identity.producer === identity.receiver) {
+    if (
+      actor !== identity.producer ||
+      identity.producer === identity.receiver
+    ) {
       throw new Error('A distinct producer must create the handoff');
     }
     if (
@@ -150,8 +153,14 @@ export class DeploymentHandoffService {
     requireText(reason, 'receiver decision reason');
     const { contract, warden, river } = this.options;
     if (outcome === 'ACCEPTED') {
-      requireText(record.evidence?.wardenDecisionRef, 'Warden decision reference');
-      requireText(record.evidence?.riverEvidenceRef, 'River evidence reference');
+      requireText(
+        record.evidence?.wardenDecisionRef,
+        'Warden decision reference',
+      );
+      requireText(
+        record.evidence?.riverEvidenceRef,
+        'River evidence reference',
+      );
     }
     const evaluation = await contract.evaluate(structuredClone(record));
     requireText(evaluation.reason, 'contract evaluation reason');
@@ -207,7 +216,9 @@ export class DeploymentHandoffService {
 
   private expect(record: Handoff, state: HandoffState) {
     if (record.state !== state) {
-      throw new Error(`Invalid transition from ${record.state}; expected ${state}`);
+      throw new Error(
+        `Invalid transition from ${record.state}; expected ${state}`,
+      );
     }
   }
 }

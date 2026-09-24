@@ -31,7 +31,9 @@ function setup(overrides: Partial<HandoffEvidence> = {}) {
     receiver: identity.receiver,
     location: identity.location,
     scope: identity.scope,
-    evaluate: jest.fn().mockResolvedValue({ passed: true, reason: 'Compatible' }),
+    evaluate: jest
+      .fn()
+      .mockResolvedValue({ passed: true, reason: 'Compatible' }),
   };
   const warden = {
     evaluate: jest.fn().mockResolvedValue({ passed: true, reason: 'Allowed' }),
@@ -71,7 +73,8 @@ function setup(overrides: Partial<HandoffEvidence> = {}) {
 
 describe('receiver-owned deployment handoff', () => {
   it('submits, reviews and accepts with bound references, preserving external truth', async () => {
-    const { service, submit, accept, contract, warden, river, evidence } = setup();
+    const { service, submit, accept, contract, warden, river, evidence } =
+      setup();
     expect(service.get(identity.id).state).toBe('NOT_READY');
     expect(submit().state).toBe('SUBMITTED');
     expect(service.beginReview(identity.id, identity.receiver).state).toBe(
@@ -123,7 +126,9 @@ describe('receiver-owned deployment handoff', () => {
     ['riverEvidenceRef', 'River'],
   ] as const)('requires %s before acceptance', async (field, label) => {
     for (const value of [undefined, '', '   ']) {
-      const { review, accept, service, warden, river } = setup({ [field]: value });
+      const { review, accept, service, warden, river } = setup({
+        [field]: value,
+      });
       review();
       await expect(accept()).rejects.toThrow(`Missing ${label}`);
       expect(service.get(identity.id).state).toBe('UNDER_REVIEW');
@@ -246,9 +251,9 @@ describe('receiver-owned deployment handoff', () => {
     expect(service.get(identity.id).evidence?.upstream[0].evidenceRef).toBe(
       'upstream:17',
     );
-    expect(service.get(identity.id).evidence?.externalEffects[0].nativeState).toBe(
-      'READY',
-    );
+    expect(
+      service.get(identity.id).evidence?.externalEffects[0].nativeState,
+    ).toBe('READY');
   });
 
   it('allows only one concurrent terminal decision', async () => {
@@ -263,8 +268,12 @@ describe('receiver-owned deployment handoff', () => {
         'Receiver declined',
       ),
     ]);
-    expect(results.filter(result => result.status === 'fulfilled')).toHaveLength(1);
-    expect(results.filter(result => result.status === 'rejected')).toHaveLength(1);
+    expect(
+      results.filter(result => result.status === 'fulfilled'),
+    ).toHaveLength(1);
+    expect(results.filter(result => result.status === 'rejected')).toHaveLength(
+      1,
+    );
     expect(service.get(identity.id).decision?.actor).toBe(identity.receiver);
   });
 });
