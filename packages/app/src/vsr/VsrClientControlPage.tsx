@@ -1,3 +1,18 @@
+/*
+ * Copyright 2026 The Backstage Authors
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 import { useMemo, useState } from 'react';
 import { useParams } from 'react-router-dom';
 import {
@@ -9,15 +24,13 @@ import {
   Progress,
 } from '@backstage/core-components';
 import { configApiRef, useApi } from '@backstage/core-plugin-api';
-import {
-  Box,
-  Button,
-  Chip,
-  Grid,
-  Tab,
-  Tabs,
-  Typography,
-} from '@material-ui/core';
+import Box from '@material-ui/core/Box';
+import Button from '@material-ui/core/Button';
+import Chip from '@material-ui/core/Chip';
+import Grid from '@material-ui/core/Grid';
+import Tab from '@material-ui/core/Tab';
+import Tabs from '@material-ui/core/Tabs';
+import Typography from '@material-ui/core/Typography';
 
 type ControlTab = 'genesis' | 'synnergyze' | 'warden';
 
@@ -30,7 +43,8 @@ interface ControlItem {
 const genesisControls: ControlItem[] = [
   {
     label: 'Network',
-    description: 'Client network topology, nodes, locations and runtime relationships.',
+    description:
+      'Client network topology, nodes, locations and runtime relationships.',
     state: 'ready',
   },
   {
@@ -63,7 +77,8 @@ const synnergyzeControls: ControlItem[] = [
   },
   {
     label: 'Usage',
-    description: 'Workspace and capability usage projected from Synnergyze metering.',
+    description:
+      'Workspace and capability usage projected from Synnergyze metering.',
     state: 'planned',
   },
   {
@@ -120,8 +135,8 @@ const WardenLivePanel = ({ clientRef }: { clientRef: string }) => (
       <InfoCard title="Expected live stages">
         <Typography variant="body2">
           Request received → principal resolved → scope checked → Warden
-          decision → provider execution → provider receipt → River observation
-          → client projection refreshed → verification.
+          decision → provider execution → provider receipt → River observation →
+          client projection refreshed → verification.
         </Typography>
       </InfoCard>
     </Grid>

@@ -43,7 +43,7 @@ jobs:
               per_page: 100,
             })
 
-            const [{tag}] = data
+            const releases = data
               .map(i => i.name)
               .filter(tag => tag.match(/^v\d+\.\d+\.\d+$/))
               .map(tag => ({
@@ -55,13 +55,13 @@ jobs:
               }))
               .sort((a, b) => b.val - a.val)
 
-            return tag
+            return releases[0]?.tag ?? context.payload.repository?.default_branch ?? 'master'
           result-encoding: string
 
       - name: checkout latest release
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
         with:
-          ref: refs/tags/${{ steps.find-release.outputs.result }}
+          ref: ${{ steps.find-release.outputs.result }}
 
       - name: Use Node.js 22.x
         uses: actions/setup-node@6044e13b5dc448c55e2357c09f80417699197238 # v6.2.0

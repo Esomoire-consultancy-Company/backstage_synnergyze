@@ -77,7 +77,6 @@ signal       = INFERENCE_COMPLETED
 signalClass  = RECEIPT
 ```
 
-
 ## LocalStack capability discovery
 
 The backend now includes a provider-discovery module for the Alpha LocalStack
@@ -108,7 +107,6 @@ execution   = EMULATED_LOCAL
 Provider discovery is intentionally non-authoritative for Warden and River.
 It reports provider runtime state only. A subsequent execution path must carry
 the Warden decision reference, provider receipt, and River evidence references.
-
 
 ## Client Admin and VSR Developer control model
 

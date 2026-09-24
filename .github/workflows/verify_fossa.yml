@@ -21,12 +21,25 @@ jobs:
       - name: Checkout
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
 
-      - name: Install Fossa
-        run: "curl -H 'Cache-Control: no-cache' https://raw.githubusercontent.com/fossas/fossa-cli/master/install.sh | bash"
+      - name: Install FOSSA
+        run: |
+          mkdir -p "$HOME/.local/bin"
+          curl -H 'Cache-Control: no-cache' https://raw.githubusercontent.com/fossas/fossa-cli/master/install-latest.sh \
+            | bash -s -- -b "$HOME/.local/bin"
+          echo "$HOME/.local/bin" >> "$GITHUB_PATH"
+          "$HOME/.local/bin/fossa" --version
 
-      - name: Fossa Configure & Analyze
+      - name: Verify FOSSA API key
         env:
-          # FOSSA Push-Only API Token
+          FOSSA_API_KEY: ${{ secrets.FOSSA_API_KEY }}
+        run: |
+          if [ -z "$FOSSA_API_KEY" ]; then
+            echo "::error::FOSSA_API_KEY repository secret is not configured"
+            exit 1
+          fi
+
+      - name: FOSSA Configure & Analyze
+        env:
           GITHUB_REF: $GITHUB_REF
-          FOSSA_API_KEY: 9ee7e8893660832a7387dcc32377fb61
+          FOSSA_API_KEY: ${{ secrets.FOSSA_API_KEY }}
         run: node scripts/run-fossa.js
