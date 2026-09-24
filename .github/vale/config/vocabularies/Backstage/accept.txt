@@ -581,3 +581,5 @@ resizable
 enums
 LLMs
 cleye
+Synnergyze
+Telecom
