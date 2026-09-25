@@ -1,3 +1,4 @@
+import { useEffect, useMemo, useState } from 'react';
 import {
   Content,
   ContentHeader,
@@ -37,7 +38,7 @@ interface EstateSignal {
   entryHref: string;
 }
 
-const healthDimensions: HealthDimension[] = [
+const baseHealthDimensions: HealthDimension[] = [
   {
     name: 'Runtime',
     state: 'unknown',
@@ -82,22 +83,99 @@ const healthDimensions: HealthDimension[] = [
   },
 ];
 
-const signals: EstateSignal[] = [
-  {
-    id: 'ESTATE-SIGNAL-BOOTSTRAP-001',
-    severity: 'info',
-    scope: 'VSR > Alpha > ALPHA-NODE-001',
-    subject: 'Estate telemetry adapters',
-    observedState:
-      'Control Tower shell is active; live River, Prometheus, Loki and Alertmanager adapters are not connected to this page yet.',
-    entrySurface: 'Client Control',
-    entryHref: '/vsr/clients/CLIENT-001',
-  },
-];
-
 const stateLabel = (state: HealthState) => state.toUpperCase();
 
-export const VsrEstateControlTowerPage = () => (
+interface PrometheusResult {
+  metric: { job?: string; instance?: string };
+  value: [number, string];
+}
+
+export const VsrEstateControlTowerPage = () => {
+  const [runtimeState, setRuntimeState] = useState<HealthState>('unknown');
+  const [evidenceState, setEvidenceState] = useState<HealthState>('unknown');
+  const [telemetryDetail, setTelemetryDetail] = useState(
+    'Connecting to Alpha telemetry through the Backstage proxy.',
+  );
+
+  useEffect(() => {
+    let active = true;
+
+    const loadTelemetry = async () => {
+      try {
+        const [prometheusResponse, riverResponse] = await Promise.all([
+          fetch('/api/proxy/vsr-prometheus/api/v1/query?query=up'),
+          fetch('/api/proxy/vsr-river/health'),
+        ]);
+
+        if (!prometheusResponse.ok || !riverResponse.ok) {
+          throw new Error('One or more telemetry sources are unavailable');
+        }
+
+        const prometheus = await prometheusResponse.json();
+        const river = await riverResponse.json();
+        const results = (prometheus?.data?.result ?? []) as PrometheusResult[];
+        const monitored = results.filter(
+          result => result.metric.job === 'prometheus' || result.metric.job === 'river-api',
+        );
+        const allUp =
+          monitored.length >= 2 &&
+          monitored.every(result => result.value?.[1] === '1');
+
+        if (!active) return;
+
+        setRuntimeState(allUp ? 'healthy' : 'degraded');
+        setEvidenceState(river?.status === 'healthy' ? 'healthy' : 'degraded');
+        setTelemetryDetail(
+          `Prometheus targets: ${monitored.length}; River: ${river?.status ?? 'unknown'}; DB: ${river?.database ?? 'unknown'}.`,
+        );
+      } catch (_error) {
+        if (!active) return;
+        setRuntimeState('unknown');
+        setEvidenceState('unknown');
+        setTelemetryDetail(
+          'Live telemetry unavailable from this Backstage runtime; no healthy state inferred.',
+        );
+      }
+    };
+
+    loadTelemetry();
+    const timer = window.setInterval(loadTelemetry, 30000);
+    return () => {
+      active = false;
+      window.clearInterval(timer);
+    };
+  }, []);
+
+  const healthDimensions = useMemo(
+    () =>
+      baseHealthDimensions.map(dimension => {
+        if (dimension.name === 'Runtime') {
+          return { ...dimension, state: runtimeState };
+        }
+        if (dimension.name === 'Evidence') {
+          return { ...dimension, state: evidenceState };
+        }
+        return dimension;
+      }),
+    [runtimeState, evidenceState],
+  );
+
+  const signals: EstateSignal[] = [
+    {
+      id: 'ESTATE-SIGNAL-TELEMETRY-001',
+      severity:
+        runtimeState === 'degraded' || evidenceState === 'degraded'
+          ? 'warning'
+          : 'info',
+      scope: 'VSR > Alpha > ALPHA-NODE-001',
+      subject: 'Alpha telemetry',
+      observedState: telemetryDetail,
+      entrySurface: 'DevTools',
+      entryHref: '/devtools',
+    },
+  ];
+
+  return (
   <Page themeId="tool">
     <Header
       title="VSR Estate Control Tower"
@@ -114,7 +192,7 @@ export const VsrEstateControlTowerPage = () => (
         <Grid item xs={12} md={8}>
           <InfoCard
             title="ALPHA-NODE-001"
-            subheader="Genesis estate seed · live adapters pending"
+            subheader="Genesis estate seed · Prometheus + River live adapter"
           >
             <Typography variant="body2" paragraph>
               Navigate the estate from canonical objects and signals. Health is
@@ -123,7 +201,7 @@ export const VsrEstateControlTowerPage = () => (
             </Typography>
             <Box display="flex" gridGap={8} flexWrap="wrap">
               <Chip size="small" label="GENESIS REGISTERED" />
-              <Chip size="small" label="LIVE TELEMETRY PENDING" />
+              <Chip size="small" label="PROMETHEUS + RIVER CONNECTED" />
               <Chip size="small" label="TERMINAL = BREAK GLASS" />
             </Box>
           </InfoCard>
@@ -241,13 +319,13 @@ export const VsrEstateControlTowerPage = () => (
           <Grid item xs={12} md={6}>
             <InfoCard title="Next live adapters">
               <Typography variant="body2" paragraph>
-                1. Prometheus estate metrics and Alertmanager state.
+                1. Alertmanager state and alert lifecycle.
               </Typography>
               <Typography variant="body2" paragraph>
                 2. Loki diagnostic links scoped to the selected estate object.
               </Typography>
               <Typography variant="body2" paragraph>
-                3. RiverOS observations, receipts and verification timeline.
+                3. RiverOS observations, receipts and verification timeline (health adapter now live).
               </Typography>
               <Typography variant="body2" paragraph>
                 4. Warden decision validity and active support sessions.
@@ -261,4 +339,5 @@ export const VsrEstateControlTowerPage = () => (
       </Box>
     </Content>
   </Page>
-);
+  );
+};
