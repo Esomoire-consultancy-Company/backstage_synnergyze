@@ -76,6 +76,12 @@ proxy:
       target: https://api.pagerduty.com
       headers:
         Authorization: Token token=${PAGERDUTY_TOKEN}
+    '/vsr-prometheus':
+      target: http://127.0.0.1:9090
+      changeOrigin: true
+    '/vsr-river':
+      target: http://127.0.0.1:8000
+      changeOrigin: true
 
 organization:
   name: My Company

@@ -29,6 +29,7 @@ import SearchIcon from '@material-ui/icons/Search';
 import MenuIcon from '@material-ui/icons/Menu';
 import BuildIcon from '@material-ui/icons/Build';
 import DashboardIcon from '@material-ui/icons/Dashboard';
+import PublicIcon from '@material-ui/icons/Public';
 import { createFrontendModule } from '@backstage/frontend-plugin-api';
 import { NavContentBlueprint } from '@backstage/plugin-app-react';
 import { SidebarSearchModal } from '@backstage/plugin-search';
@@ -123,6 +124,11 @@ export const appModuleNav = createFrontendModule({
               <SidebarGroup label="Menu" icon={<MenuIcon />}>
                 {nav.take('page:catalog')}
                 {nav.take('page:scaffolder')}
+                <SidebarItem
+                  icon={PublicIcon}
+                  to="/vsr/estate"
+                  text="Estate Control"
+                />
                 <SidebarItem
                   icon={DashboardIcon}
                   to="/vsr/clients/CLIENT-001"
