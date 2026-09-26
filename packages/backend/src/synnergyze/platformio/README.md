@@ -47,3 +47,21 @@ Effect admission uses a retry-safe reservation lifecycle:
 - Canonical truth still requires the independent post-admission verification step.
 
 This preserves the rule that budgets/reservations are released only when `no_effect` is established.
+
+
+## Restart recovery
+
+Admission attempts are journaled before effectful Genesis mutation and recovered after process or node interruption.
+
+Recovery rules:
+
+- `PREPARED` requires effect inspection before any further action.
+- Confirmed mutation is journaled as `MUTATED`, its Warden reservation is committed, missing River mutation evidence is backfilled, and verification resumes.
+- Confirmed no-effect closes as `CLOSED_NO_EFFECT` and releases the reservation.
+- Uncertain effect remains `RECONCILIATION_REQUIRED`; recovery must not blindly redispatch the mutation.
+- `VERIFICATION_PENDING` resumes verification against the same canonical object and mutation lineage.
+- Only successful verification reaches `VERIFIED` and establishes canonical truth.
+- `VERIFIED` and `CLOSED_NO_EFFECT` are terminal and cannot rewind to active mutation states.
+- Recovery sweeps isolate failures per journal entry so one unavailable backend or corrupt attempt does not block the rest of the queue.
+
+The journal contract is storage-neutral in R0.1. A concrete Alpha persistence adapter and scheduled worker registration are separate runtime-wiring steps.
