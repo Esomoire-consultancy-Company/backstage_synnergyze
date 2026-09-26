@@ -33,3 +33,17 @@ Effect-producing operations such as build, upload, remote execution, package mut
 PlatformIO accounts and credentials remain provider-native. DigitalMe identifies the VSR principal; Warden authorizes use; RiverOS records evidence. Provider secrets must not be copied into ordinary Genesis identity records.
 
 This module is deliberately additive and isolated until it is qualified against the live Alpha-node provider-routing implementation.
+
+
+## Reservation and reconciliation semantics
+
+Effect admission uses a retry-safe reservation lifecycle:
+
+- `EFFECT_CONFIRMED` -> commit the Warden reservation and continue to verification.
+- `NO_EFFECT_CONFIRMED` -> release the reservation.
+- `EFFECT_UNCERTAIN` -> commit the reservation, hold the attempt for reconciliation, and do not retry the mutation blindly.
+- A durable idempotency key is derived from proposal, candidate, mutation type, and canonical target.
+- If Genesis mutation succeeded but the response or River receipt was lost, reconciliation backfills evidence without repeating the mutation.
+- Canonical truth still requires the independent post-admission verification step.
+
+This preserves the rule that budgets/reservations are released only when `no_effect` is established.
