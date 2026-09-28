@@ -75,3 +75,5 @@ export const synnergyzeProviderDiscoveryPlugin = createBackendPlugin({
     });
   },
 });
+
+export default synnergyzeProviderDiscoveryPlugin;
