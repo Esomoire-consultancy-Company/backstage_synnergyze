@@ -107,3 +107,5 @@ export const vsrTelemetryPlugin = createBackendPlugin({
     });
   },
 });
+
+export default vsrTelemetryPlugin;
