@@ -22,6 +22,11 @@ import {
   InfoCard,
   Page,
 } from '@backstage/core-components';
+import {
+  discoveryApiRef,
+  fetchApiRef,
+  useApi,
+} from '@backstage/core-plugin-api';
 import Box from '@material-ui/core/Box';
 import Button from '@material-ui/core/Button';
 import Chip from '@material-ui/core/Chip';
@@ -32,6 +37,7 @@ import TableCell from '@material-ui/core/TableCell';
 import TableHead from '@material-ui/core/TableHead';
 import TableRow from '@material-ui/core/TableRow';
 import Typography from '@material-ui/core/Typography';
+import { Link as RouterLink } from 'react-router-dom';
 import { VsrRuntimeTunnelPanel } from './VsrRuntimeTunnelPanel';
 
 type HealthState = 'healthy' | 'degraded' | 'blocked' | 'unknown';
@@ -50,7 +56,7 @@ interface EstateSignal {
   subject: string;
   observedState: string;
   entrySurface: string;
-  entryHref: string;
+  entryTo: string;
 }
 
 const baseHealthDimensions: HealthDimension[] = [
@@ -102,72 +108,166 @@ const baseHealthDimensions: HealthDimension[] = [
   },
 ];
 
+const EXPECTED_PROMETHEUS_JOBS = ['prometheus', 'river-api'] as const;
+const POLL_INTERVAL_MS = 30_000;
+const REQUEST_TIMEOUT_MS = 10_000;
+
 const stateLabel = (state: HealthState) => state.toUpperCase();
 
 interface PrometheusResult {
-  metric: { job?: string; instance?: string };
-  value: [number, string];
+  metric: { job?: string };
+  value?: [number, string];
 }
 
+const summarizePrometheus = (
+  payload: any,
+): { state: HealthState; detail: string } => {
+  const results = (payload?.data?.result ?? []) as PrometheusResult[];
+  const monitored = EXPECTED_PROMETHEUS_JOBS.map(job => ({
+    job,
+    result: results.find(candidate => candidate.metric.job === job),
+  }));
+  const downJobs = monitored
+    .filter(({ result }) => result && result.value?.[1] !== '1')
+    .map(({ job }) => job);
+  const missingJobs = monitored
+    .filter(({ result }) => !result)
+    .map(({ job }) => job);
+
+  if (downJobs.length > 0) {
+    return {
+      state: 'degraded',
+      detail: `Prometheus observed down target(s): ${downJobs.join(', ')}.`,
+    };
+  }
+
+  if (missingJobs.length > 0) {
+    return {
+      state: 'unknown',
+      detail: `Prometheus reachable; expected target(s) missing: ${missingJobs.join(
+        ', ',
+      )}.`,
+    };
+  }
+
+  return {
+    state: 'healthy',
+    detail: `Prometheus expected targets healthy: ${EXPECTED_PROMETHEUS_JOBS.join(
+      ', ',
+    )}.`,
+  };
+};
+
+const summarizeRiver = (
+  payload: any,
+): { state: HealthState; detail: string } => {
+  if (!payload || typeof payload.status !== 'string') {
+    return {
+      state: 'unknown',
+      detail: 'River responded without an authoritative health status.',
+    };
+  }
+
+  return {
+    state: payload.status === 'healthy' ? 'healthy' : 'degraded',
+    detail: `River: ${payload.status}; DB: ${payload.database ?? 'unknown'}.`,
+  };
+};
+
 export const VsrEstateControlTowerPage = () => {
+  const discoveryApi = useApi(discoveryApiRef);
+  const fetchApi = useApi(fetchApiRef);
   const [runtimeState, setRuntimeState] = useState<HealthState>('unknown');
   const [evidenceState, setEvidenceState] = useState<HealthState>('unknown');
-  const [telemetryDetail, setTelemetryDetail] = useState(
-    'Connecting to Alpha telemetry through the Backstage proxy.',
+  const [runtimeDetail, setRuntimeDetail] = useState(
+    'Prometheus telemetry has not yet been observed.',
+  );
+  const [evidenceDetail, setEvidenceDetail] = useState(
+    'River telemetry has not yet been observed.',
   );
 
   useEffect(() => {
     let active = true;
+    let pollTimer: number | undefined;
+    let currentController: AbortController | undefined;
+
+    const requestJson = async (url: string, signal: AbortSignal) => {
+      const response = await fetchApi.fetch(url, { signal });
+      if (!response.ok) {
+        throw new Error(`Telemetry request failed with ${response.status}`);
+      }
+      return response.json();
+    };
 
     const loadTelemetry = async () => {
+      const controller = new AbortController();
+      currentController = controller;
+      const timeout = window.setTimeout(
+        () => controller.abort(),
+        REQUEST_TIMEOUT_MS,
+      );
+
       try {
-        const [prometheusResponse, riverResponse] = await Promise.all([
-          fetch('/api/proxy/vsr-prometheus/api/v1/query?query=up'),
-          fetch('/api/proxy/vsr-river/health'),
+        const baseUrl = await discoveryApi.getBaseUrl('vsr-telemetry');
+        const [prometheusResult, riverResult] = await Promise.allSettled([
+          requestJson(`${baseUrl}/prometheus/up`, controller.signal),
+          requestJson(`${baseUrl}/river/health`, controller.signal),
         ]);
-
-        if (!prometheusResponse.ok || !riverResponse.ok) {
-          throw new Error('One or more telemetry sources are unavailable');
-        }
-
-        const prometheus = await prometheusResponse.json();
-        const river = await riverResponse.json();
-        const results = (prometheus?.data?.result ?? []) as PrometheusResult[];
-        const monitored = results.filter(
-          result =>
-            result.metric.job === 'prometheus' ||
-            result.metric.job === 'river-api',
-        );
-        const allUp =
-          monitored.length >= 2 &&
-          monitored.every(result => result.value?.[1] === '1');
 
         if (!active) return;
 
-        setRuntimeState(allUp ? 'healthy' : 'degraded');
-        setEvidenceState(river?.status === 'healthy' ? 'healthy' : 'degraded');
-        setTelemetryDetail(
-          `Prometheus targets: ${monitored.length}; River: ${
-            river?.status ?? 'unknown'
-          }; DB: ${river?.database ?? 'unknown'}.`,
-        );
+        if (prometheusResult.status === 'fulfilled') {
+          const summary = summarizePrometheus(prometheusResult.value);
+          setRuntimeState(summary.state);
+          setRuntimeDetail(summary.detail);
+        } else {
+          setRuntimeState('unknown');
+          setRuntimeDetail(
+            'Prometheus telemetry unavailable; no runtime state inferred.',
+          );
+        }
+
+        if (riverResult.status === 'fulfilled') {
+          const summary = summarizeRiver(riverResult.value);
+          setEvidenceState(summary.state);
+          setEvidenceDetail(summary.detail);
+        } else {
+          setEvidenceState('unknown');
+          setEvidenceDetail(
+            'River telemetry unavailable; no evidence state inferred.',
+          );
+        }
       } catch (_error) {
         if (!active) return;
         setRuntimeState('unknown');
         setEvidenceState('unknown');
-        setTelemetryDetail(
-          'Live telemetry unavailable from this Backstage runtime; no healthy state inferred.',
+        setRuntimeDetail(
+          'Telemetry adapter unavailable; no runtime state inferred.',
         );
+        setEvidenceDetail(
+          'Telemetry adapter unavailable; no evidence state inferred.',
+        );
+      } finally {
+        window.clearTimeout(timeout);
+        if (currentController === controller) {
+          currentController = undefined;
+        }
+        if (active) {
+          pollTimer = window.setTimeout(loadTelemetry, POLL_INTERVAL_MS);
+        }
       }
     };
 
-    loadTelemetry();
-    const timer = window.setInterval(loadTelemetry, 30000);
+    void loadTelemetry();
+
     return () => {
       active = false;
-      window.clearInterval(timer);
+      if (pollTimer !== undefined) {
+        window.clearTimeout(pollTimer);
+      }
+      currentController?.abort();
     };
-  }, []);
+  }, [discoveryApi, fetchApi]);
 
   const healthDimensions = useMemo(
     () =>
@@ -192,9 +292,9 @@ export const VsrEstateControlTowerPage = () => {
           : 'info',
       scope: 'VSR > Alpha > ALPHA-NODE-001',
       subject: 'Alpha telemetry',
-      observedState: telemetryDetail,
+      observedState: `${runtimeDetail} ${evidenceDetail}`,
       entrySurface: 'DevTools',
-      entryHref: '/devtools',
+      entryTo: '/devtools',
     },
   ];
 
@@ -206,7 +306,11 @@ export const VsrEstateControlTowerPage = () => {
       />
       <Content>
         <ContentHeader title="Estate">
-          <Button variant="outlined" href="/vsr/clients/CLIENT-001">
+          <Button
+            component={RouterLink}
+            to="/vsr/clients/CLIENT-001"
+            variant="outlined"
+          >
             Open Client Control
           </Button>
         </ContentHeader>
@@ -289,9 +393,10 @@ export const VsrEstateControlTowerPage = () => {
                     <TableCell>{signal.observedState}</TableCell>
                     <TableCell>
                       <Button
+                        component={RouterLink}
                         size="small"
+                        to={signal.entryTo}
                         variant="outlined"
-                        href={signal.entryHref}
                       >
                         {signal.entrySurface}
                       </Button>
@@ -324,17 +429,28 @@ export const VsrEstateControlTowerPage = () => {
                   when the higher layers cannot resolve the fault.
                 </Typography>
                 <Box mt={2} display="flex" gridGap={8} flexWrap="wrap">
-                  <Button size="small" variant="outlined" href="/catalog">
+                  <Button
+                    component={RouterLink}
+                    size="small"
+                    to="/catalog"
+                    variant="outlined"
+                  >
                     Genesis / Catalog
                   </Button>
                   <Button
+                    component={RouterLink}
                     size="small"
+                    to="/vsr/clients/CLIENT-001"
                     variant="outlined"
-                    href="/vsr/clients/CLIENT-001"
                   >
                     Warden / Synnergyze
                   </Button>
-                  <Button size="small" variant="outlined" href="/devtools">
+                  <Button
+                    component={RouterLink}
+                    size="small"
+                    to="/devtools"
+                    variant="outlined"
+                  >
                     DevTools
                   </Button>
                 </Box>
