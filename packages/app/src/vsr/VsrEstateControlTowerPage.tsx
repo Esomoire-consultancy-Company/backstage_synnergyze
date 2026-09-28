@@ -119,8 +119,19 @@ interface PrometheusResult {
   value?: [number, string];
 }
 
+interface PrometheusPayload {
+  data?: {
+    result?: PrometheusResult[];
+  };
+}
+
+interface RiverHealthPayload {
+  status?: unknown;
+  database?: unknown;
+}
+
 const summarizePrometheus = (
-  payload: any,
+  payload: PrometheusPayload,
 ): { state: HealthState; detail: string } => {
   const results = (payload?.data?.result ?? []) as PrometheusResult[];
   const monitored = EXPECTED_PROMETHEUS_JOBS.map(job => ({
@@ -159,18 +170,21 @@ const summarizePrometheus = (
 };
 
 const summarizeRiver = (
-  payload: any,
+  payload: RiverHealthPayload,
 ): { state: HealthState; detail: string } => {
-  if (!payload || typeof payload.status !== 'string') {
+  if (typeof payload.status !== 'string') {
     return {
       state: 'unknown',
       detail: 'River responded without an authoritative health status.',
     };
   }
 
+  const database =
+    typeof payload.database === 'string' ? payload.database : 'unknown';
+
   return {
     state: payload.status === 'healthy' ? 'healthy' : 'degraded',
-    detail: `River: ${payload.status}; DB: ${payload.database ?? 'unknown'}.`,
+    detail: `River: ${payload.status}; DB: ${database}.`,
   };
 };
 
@@ -191,12 +205,15 @@ export const VsrEstateControlTowerPage = () => {
     let pollTimer: number | undefined;
     let currentController: AbortController | undefined;
 
-    const requestJson = async (url: string, signal: AbortSignal) => {
+    const requestJson = async <T,>(
+      url: string,
+      signal: AbortSignal,
+    ): Promise<T> => {
       const response = await fetchApi.fetch(url, { signal });
       if (!response.ok) {
         throw new Error(`Telemetry request failed with ${response.status}`);
       }
-      return response.json();
+      return response.json() as Promise<T>;
     };
 
     const loadTelemetry = async () => {
@@ -210,8 +227,14 @@ export const VsrEstateControlTowerPage = () => {
       try {
         const baseUrl = await discoveryApi.getBaseUrl('vsr-telemetry');
         const [prometheusResult, riverResult] = await Promise.allSettled([
-          requestJson(`${baseUrl}/prometheus/up`, controller.signal),
-          requestJson(`${baseUrl}/river/health`, controller.signal),
+          requestJson<PrometheusPayload>(
+            `${baseUrl}/prometheus/up`,
+            controller.signal,
+          ),
+          requestJson<RiverHealthPayload>(
+            `${baseUrl}/river/health`,
+            controller.signal,
+          ),
         ]);
 
         if (!active) return;
