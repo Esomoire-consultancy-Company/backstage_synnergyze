@@ -62,20 +62,26 @@ export const VsrRuntimeTunnelPanel = () => (
     </Typography>
 
     <Box
+      aria-label="Canonical runtime tunnel sequence"
+      component="ol"
       data-testid="runtime-tunnel-101"
       display="flex"
       alignItems="stretch"
       flexWrap="wrap"
       gridGap={8}
+      m={0}
+      p={0}
     >
       {tunnelSteps.map((step, index) => (
         <Box
           key={step.position}
+          component="li"
           data-tunnel-position={step.position}
           data-testid={`runtime-tunnel-step-${step.position}`}
           display="flex"
           alignItems="center"
           gridGap={8}
+          style={{ listStyle: 'none' }}
         >
           {index > 0 && (
             <Typography aria-hidden="true" variant="body2">
