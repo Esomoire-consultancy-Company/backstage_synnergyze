@@ -28,6 +28,7 @@ describe('VsrEstateControlTowerPage', () => {
     expect(screen.getByText('Signals')).toBeInTheDocument();
     expect(screen.getByText('Genesis / Catalog')).toBeInTheDocument();
     expect(screen.getAllByText('DevTools').length).toBeGreaterThan(0);
+    expect(screen.getAllByText('UNKNOWN')).toHaveLength(7);
     expect(
       screen.getByText(/Story projection remains NOT WIRED/),
     ).toBeInTheDocument();
@@ -40,6 +41,12 @@ describe('VsrEstateControlTowerPage', () => {
     ).map(node => node.getAttribute('data-tunnel-position'));
 
     expect(positions).toEqual(['1A', 'gate-entry', '0', 'gate-exit', '1B']);
+    expect(
+      screen.getByRole('list', {
+        name: 'Canonical runtime tunnel sequence',
+      }),
+    ).toBeInTheDocument();
+    expect(screen.getAllByRole('listitem')).toHaveLength(5);
   });
   it('keeps entry and exit gates explicit without turning them into state', async () => {
     await renderInTestApp(<VsrRuntimeTunnelPanel />);
