@@ -114,15 +114,13 @@ const REQUEST_TIMEOUT_MS = 10_000;
 
 const stateLabel = (state: HealthState) => state.toUpperCase();
 
-interface PrometheusResult {
-  metric: { job?: string };
-  value?: [number, string];
+interface PrometheusTarget {
+  job: string;
+  up: boolean;
 }
 
 interface PrometheusPayload {
-  data?: {
-    result?: PrometheusResult[];
-  };
+  targets?: PrometheusTarget[];
 }
 
 interface RiverHealthPayload {
@@ -133,16 +131,18 @@ interface RiverHealthPayload {
 const summarizePrometheus = (
   payload: PrometheusPayload,
 ): { state: HealthState; detail: string } => {
-  const results = (payload?.data?.result ?? []) as PrometheusResult[];
+  const targets = payload.targets ?? [];
   const monitored = EXPECTED_PROMETHEUS_JOBS.map(job => ({
     job,
-    result: results.find(candidate => candidate.metric.job === job),
+    targets: targets.filter(target => target.job === job),
   }));
   const downJobs = monitored
-    .filter(({ result }) => result && result.value?.[1] !== '1')
+    .filter(({ targets: jobTargets }) =>
+      jobTargets.some(target => !target.up),
+    )
     .map(({ job }) => job);
   const missingJobs = monitored
-    .filter(({ result }) => !result)
+    .filter(({ targets: jobTargets }) => jobTargets.length === 0)
     .map(({ job }) => job);
 
   if (downJobs.length > 0) {
