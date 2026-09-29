@@ -14,7 +14,14 @@
  * limitations under the License.
  */
 
-import { renderInTestApp } from '@backstage/test-utils';
+import {
+  renderInTestApp,
+  TestApiProvider,
+} from '@backstage/test-utils';
+import {
+  discoveryApiRef,
+  fetchApiRef,
+} from '@backstage/core-plugin-api';
 import { screen, within } from '@testing-library/react';
 import { VsrEstateControlTowerPage } from './VsrEstateControlTowerPage';
 import { VsrRuntimeTunnelPanel } from './VsrRuntimeTunnelPanel';
@@ -32,6 +39,57 @@ describe('VsrEstateControlTowerPage', () => {
     expect(
       screen.getByText(/Story projection remains NOT WIRED/),
     ).toBeInTheDocument();
+  });
+
+  it('degrades Runtime when any expected Prometheus target is down', async () => {
+    const fetch = jest.fn(async input => {
+      const url = String(input);
+
+      if (url.endsWith('/prometheus/up')) {
+        return new Response(
+          JSON.stringify({
+            targets: [
+              { job: 'prometheus', up: true },
+              { job: 'river-api', up: true },
+              { job: 'river-api', up: false },
+            ],
+          }),
+          {
+            status: 200,
+            headers: { 'content-type': 'application/json' },
+          },
+        );
+      }
+
+      return new Response(
+        JSON.stringify({ status: 'healthy', database: 'healthy' }),
+        {
+          status: 200,
+          headers: { 'content-type': 'application/json' },
+        },
+      );
+    });
+
+    await renderInTestApp(
+      <TestApiProvider
+        apis={[
+          [
+            discoveryApiRef,
+            { getBaseUrl: async () => 'http://vsr-telemetry.test' },
+          ],
+          [fetchApiRef, { fetch }],
+        ]}
+      >
+        <VsrEstateControlTowerPage />
+      </TestApiProvider>,
+    );
+
+    expect(await screen.findByText('DEGRADED')).toBeInTheDocument();
+    expect(screen.getByText(/observed down target\(s\): river-api/)).toBeInTheDocument();
+    expect(fetch).toHaveBeenCalledWith(
+      'http://vsr-telemetry.test/prometheus/up',
+      expect.objectContaining({ signal: expect.any(AbortSignal) }),
+    );
   });
 
   it('renders the canonical runtime tunnel in exact positional order', async () => {
