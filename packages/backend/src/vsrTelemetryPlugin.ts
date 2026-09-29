@@ -65,15 +65,15 @@ export const vsrTelemetryPlugin = createBackendPlugin({
           'http://127.0.0.1:8000';
 
         httpRouter.use(async (req, res, next) => {
-          const target =
-            req.path === '/prometheus/up'
-              ? joinUrl(
-                  prometheusBaseUrl,
-                  '/api/v1/query?query=up%7Bjob%3D~%22prometheus%7Criver-api%22%7D',
-                )
-              : req.path === '/river/health'
-              ? joinUrl(riverBaseUrl, '/health')
-              : undefined;
+          let target: string | undefined;
+          if (req.path === '/prometheus/up') {
+            target = joinUrl(
+              prometheusBaseUrl,
+              '/api/v1/query?query=up%7Bjob%3D~%22prometheus%7Criver-api%22%7D',
+            );
+          } else if (req.path === '/river/health') {
+            target = joinUrl(riverBaseUrl, '/health');
+          }
 
           if (!target) {
             next();
