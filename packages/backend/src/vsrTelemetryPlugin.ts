@@ -14,15 +14,34 @@
  * limitations under the License.
  */
 
-import {
-  coreServices,
-  createBackendPlugin,
-} from '@backstage/backend-plugin-api';
+import { coreServices, createBackendPlugin } from '@backstage/backend-plugin-api';
 
 const REQUEST_TIMEOUT_MS = 8_000;
 
 const joinUrl = (baseUrl: string, path: string) =>
   `${baseUrl.replace(/\/$/, '')}${path}`;
+
+interface PrometheusResult {
+  metric?: { job?: string };
+  value?: [number, string];
+}
+
+interface PrometheusResponse {
+  data?: {
+    result?: PrometheusResult[];
+  };
+}
+
+const normalizePrometheusTargets = (payload: PrometheusResponse) => ({
+  targets: (payload.data?.result ?? []).flatMap(result => {
+    const job = result.metric?.job;
+    if (job !== 'prometheus' && job !== 'river-api') {
+      return [];
+    }
+
+    return [{ job, up: result.value?.[1] === '1' }];
+  }),
+});
 
 export const vsrTelemetryPlugin = createBackendPlugin({
   pluginId: 'vsr-telemetry',
@@ -45,7 +64,10 @@ export const vsrTelemetryPlugin = createBackendPlugin({
         httpRouter.use(async (req, res, next) => {
           const target =
             req.path === '/prometheus/up'
-              ? joinUrl(prometheusBaseUrl, '/api/v1/query?query=up')
+              ? joinUrl(
+                  prometheusBaseUrl,
+                  '/api/v1/query?query=up%7Bjob%3D~%22prometheus%7Criver-api%22%7D',
+                )
               : req.path === '/river/health'
                 ? joinUrl(riverBaseUrl, '/health')
                 : undefined;
@@ -92,7 +114,15 @@ export const vsrTelemetryPlugin = createBackendPlugin({
               return;
             }
 
-            res.status(200).json(await upstream.json());
+            const payload = await upstream.json();
+
+            res
+              .status(200)
+              .json(
+                req.path === '/prometheus/up'
+                  ? normalizePrometheusTargets(payload as PrometheusResponse)
+                  : payload,
+              );
           } catch (error) {
             logger.warn('VSR telemetry upstream request failed', {
               route: req.path,
