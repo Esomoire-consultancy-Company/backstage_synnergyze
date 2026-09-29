@@ -20,9 +20,28 @@ import { screen, within } from '@testing-library/react';
 import { VsrEstateControlTowerPage } from './VsrEstateControlTowerPage';
 import { VsrRuntimeTunnelPanel } from './VsrRuntimeTunnelPanel';
 
+const unavailableFetch: typeof fetch = async () => {
+  throw new Error('telemetry unavailable');
+};
+
+const renderEstatePage = (fetchImpl: typeof fetch = unavailableFetch) =>
+  renderInTestApp(
+    <TestApiProvider
+      apis={[
+        [
+          discoveryApiRef,
+          { getBaseUrl: async () => 'http://vsr-telemetry.test' },
+        ],
+        [fetchApiRef, { fetch: fetchImpl }],
+      ]}
+    >
+      <VsrEstateControlTowerPage />
+    </TestApiProvider>,
+  );
+
 describe('VsrEstateControlTowerPage', () => {
   it('renders estate operations surfaces and keeps Story fail-closed', async () => {
-    await renderInTestApp(<VsrEstateControlTowerPage />);
+    await renderEstatePage();
 
     expect(screen.getByText('VSR Estate Control Tower')).toBeInTheDocument();
     expect(screen.getByText('ALPHA-NODE-001')).toBeInTheDocument();
@@ -64,19 +83,7 @@ describe('VsrEstateControlTowerPage', () => {
       );
     });
 
-    await renderInTestApp(
-      <TestApiProvider
-        apis={[
-          [
-            discoveryApiRef,
-            { getBaseUrl: async () => 'http://vsr-telemetry.test' },
-          ],
-          [fetchApiRef, { fetch }],
-        ]}
-      >
-        <VsrEstateControlTowerPage />
-      </TestApiProvider>,
-    );
+    await renderEstatePage(fetch);
 
     expect(await screen.findByText('DEGRADED')).toBeInTheDocument();
     expect(
