@@ -52,7 +52,8 @@ export interface RuntimeTunnelProjection {
     | 'unavailable'
     | 'invalid'
     | 'restricted';
-  phase?: TunnelStep;
+  phase?: 'ORIGIN_LIGHT' | 'TUNNEL_DARK' | 'RETURN_LIGHT';
+  boundary?: 'SILK_DAM_ENTRY' | 'SILK_DAM_EXIT';
   snapshot?: RuntimeTunnelSnapshot;
 }
 
@@ -139,9 +140,18 @@ export function projectRuntimeTunnel(
   // A snapshot from the future must not leak later Story observations into replay.
   if (asOf < Date.parse(input.observedAt)) return { temporal: 'future' };
   const temporal = asOf >= Date.parse(input.validUntil) ? 'stale' : 'current';
+  let phase: NonNullable<RuntimeTunnelProjection['phase']> = 'ORIGIN_LIGHT';
+  if (observations.length >= 3) phase = 'TUNNEL_DARK';
+  if (observations.length === 5) phase = 'RETURN_LIGHT';
   return {
     temporal,
-    phase: observations[observations.length - 1].step,
+    phase,
+    ...(observations.length === 2
+      ? { boundary: 'SILK_DAM_ENTRY' as const }
+      : {}),
+    ...(observations.length === 4
+      ? { boundary: 'SILK_DAM_EXIT' as const }
+      : {}),
     snapshot: {
       contract: 'RUNTIME-TUNNEL-101',
       subjectRef,

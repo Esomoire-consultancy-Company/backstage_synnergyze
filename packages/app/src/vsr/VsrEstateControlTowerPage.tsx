@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { RuntimeTunnelPanel } from './RuntimeTunnelPanel';
+import { VsrRuntimeTunnelPanel } from './VsrRuntimeTunnelPanel';
 import {
   discoveryApiRef,
   fetchApiRef,
@@ -257,7 +257,7 @@ export const VsrEstateControlTowerPage = () => {
         </Grid>
 
         <Box mt={3}>
-          <RuntimeTunnelPanel subjectRef="ALPHA-NODE-001" />
+          <VsrRuntimeTunnelPanel />
         </Box>
 
         <Box mt={3}>

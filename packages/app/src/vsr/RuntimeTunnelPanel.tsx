@@ -66,6 +66,11 @@ export function RuntimeTunnelView({
             }: ${labels[projection.phase]}`
           : 'Tunnel state unknown. Awaiting a permitted canonical River Story projection.'}
       </Typography>
+      {projection.boundary && (
+        <Typography variant="body2">
+          Boundary observed: {labels[projection.boundary]}
+        </Typography>
+      )}
       <Box
         component="ol"
         aria-label="RUNTIME-TUNNEL-101"

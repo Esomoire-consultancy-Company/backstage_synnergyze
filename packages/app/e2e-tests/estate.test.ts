@@ -100,6 +100,7 @@ test('Estate keeps tunnel passage separate from Spotlight and Sentinel time', as
     }),
   );
   await page.goto('/vsr/estate');
+  await page.getByRole('button', { name: 'Enter', exact: true }).click();
 
   await expect(page.getByText('Sentinel Clock: CURRENT')).toBeVisible({
     timeout: 30000,

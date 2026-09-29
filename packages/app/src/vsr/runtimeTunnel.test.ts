@@ -52,9 +52,21 @@ describe('Sentinel runtime tunnel projection', () => {
         }),
       ).toMatchObject({
         temporal: 'current',
-        phase: runtimeTunnelSteps[length - 1],
+        phase: [
+          'ORIGIN_LIGHT',
+          'ORIGIN_LIGHT',
+          'TUNNEL_DARK',
+          'TUNNEL_DARK',
+          'RETURN_LIGHT',
+        ][length - 1],
       });
     }
+    expect(
+      project({ ...input, observations: input.observations.slice(0, 2) }),
+    ).toMatchObject({ phase: 'ORIGIN_LIGHT', boundary: 'SILK_DAM_ENTRY' });
+    expect(
+      project({ ...input, observations: input.observations.slice(0, 4) }),
+    ).toMatchObject({ phase: 'TUNNEL_DARK', boundary: 'SILK_DAM_EXIT' });
     expect(JSON.stringify(input)).toBe(before);
     expect(
       project({

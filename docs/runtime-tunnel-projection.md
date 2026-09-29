@@ -55,7 +55,7 @@ A successful response has this shape (references below are illustrative):
 }
 ```
 
-Observations must form a contiguous prefix of the five canonical steps. Each
+Observations must form a contiguous prefix of the five journey positions. Entry and exit are observed boundaries, not additional canonical states; the projected phase remains ORIGIN_LIGHT at entry and TUNNEL_DARK at exit until River records the next state. Each
 observation needs a distinct evidence reference and nondecreasing event time.
 Entry and exit additionally require `gateRef` and `passageDecisionRef`, resolved
 by the upstream to the correct subject, Story, gate and historical permission.
@@ -91,3 +91,11 @@ registration type error, formatting failures, and a failed FOSSA job. The
 registration error comes from dynamically importing a named plugin export as
 if it were a default export. The patch resolves that existing startup blocker.
 Unrelated formatting files are not rewritten.
+
+On 29 September, the integration was reconciled with PR revision 8e857a74c2.
+The existing VsrRuntimeTunnelPanel export is preserved and delegates to the
+validated read-model view; there is only one rendered tunnel. Warden on port
+8010 exposes context, capability, handoff and return-path APIs, but no Story
+projection endpoint. The alternative configured Backstage port 7013 refused
+connections when checked. These observations do not authorize minting a new
+Warden grant or treating raw River events as an admitted Story.
