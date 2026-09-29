@@ -65,11 +65,14 @@ export const synnergyzeProviderDiscoveryPlugin = createBackendPlugin({
             normalizedSignals: signals.length,
           });
         } catch (error) {
-          logger.warn('Synnergyze LocalStack capability discovery unavailable', {
-            endpoint,
-            nodeId,
-            error: error instanceof Error ? error.message : String(error),
-          });
+          logger.warn(
+            'Synnergyze LocalStack capability discovery unavailable',
+            {
+              endpoint,
+              nodeId,
+              error: error instanceof Error ? error.message : String(error),
+            },
+          );
         }
       },
     });

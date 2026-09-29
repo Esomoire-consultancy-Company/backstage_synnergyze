@@ -30,7 +30,8 @@ interface ControlItem {
 const genesisControls: ControlItem[] = [
   {
     label: 'Network',
-    description: 'Client network topology, nodes, locations and runtime relationships.',
+    description:
+      'Client network topology, nodes, locations and runtime relationships.',
     state: 'ready',
   },
   {
@@ -63,7 +64,8 @@ const synnergyzeControls: ControlItem[] = [
   },
   {
     label: 'Usage',
-    description: 'Workspace and capability usage projected from Synnergyze metering.',
+    description:
+      'Workspace and capability usage projected from Synnergyze metering.',
     state: 'planned',
   },
   {
@@ -120,8 +122,8 @@ const WardenLivePanel = ({ clientRef }: { clientRef: string }) => (
       <InfoCard title="Expected live stages">
         <Typography variant="body2">
           Request received → principal resolved → scope checked → Warden
-          decision → provider execution → provider receipt → River observation
-          → client projection refreshed → verification.
+          decision → provider execution → provider receipt → River observation →
+          client projection refreshed → verification.
         </Typography>
       </InfoCard>
     </Grid>

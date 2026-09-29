@@ -335,7 +335,6 @@ devTools:
     plugins:
       - catalog
 
-
 # Virtual Silk Road client projection surface.
 # In Alpha this resolves to the local Backstage/VSR app. Production can point
 # to the dedicated VSR client frontend without changing the control contracts.

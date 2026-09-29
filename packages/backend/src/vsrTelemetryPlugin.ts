@@ -14,7 +14,10 @@
  * limitations under the License.
  */
 
-import { coreServices, createBackendPlugin } from '@backstage/backend-plugin-api';
+import {
+  coreServices,
+  createBackendPlugin,
+} from '@backstage/backend-plugin-api';
 
 const REQUEST_TIMEOUT_MS = 8_000;
 
@@ -69,8 +72,8 @@ export const vsrTelemetryPlugin = createBackendPlugin({
                   '/api/v1/query?query=up%7Bjob%3D~%22prometheus%7Criver-api%22%7D',
                 )
               : req.path === '/river/health'
-                ? joinUrl(riverBaseUrl, '/health')
-                : undefined;
+              ? joinUrl(riverBaseUrl, '/health')
+              : undefined;
 
           if (!target) {
             next();

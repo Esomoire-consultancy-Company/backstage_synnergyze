@@ -137,9 +137,7 @@ const summarizePrometheus = (
     targets: targets.filter(target => target.job === job),
   }));
   const downJobs = monitored
-    .filter(({ targets: jobTargets }) =>
-      jobTargets.some(target => !target.up),
-    )
+    .filter(({ targets: jobTargets }) => jobTargets.some(target => !target.up))
     .map(({ job }) => job);
   const missingJobs = monitored
     .filter(({ targets: jobTargets }) => jobTargets.length === 0)
