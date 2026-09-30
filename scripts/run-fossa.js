@@ -15,69 +15,29 @@
  * limitations under the License.
  */
 
-// This script generates an appropriate fossa config, and wraps the running
-// of `fossa analyze` in a retry loop as it frequently fails with a 502 error
-
-const { resolve: resolvePath, join: joinPath, basename } = require('node:path');
+// FOSSA CLI v3 discovers Yarn workspaces natively. Keep the scan bounded to
+// the repository's root Yarn project so nested npm fixture projects are not
+// reported as production dependency targets.
+const { resolve: resolvePath } = require('node:path');
 const { promises: fs } = require('node:fs');
 const { execFile: execFileCb } = require('node:child_process');
 const { promisify } = require('node:util');
 
 const execFile = promisify(execFileCb);
 
-const FOSSA_YAML_HEAD = `
-version: 2
-cli:
-  server: https://app.fossa.com
-  fetcher: custom
-  project: backstage
-analyze:
-  modules:`;
-
-const IGNORED_DIRS = ['node_modules', 'dist', 'bin', '.git'];
-
-// Finds all directories containing package.json files that we're interested in analyzing
-async function findPackageJsonDirs(dir, depth = 0) {
-  if (depth > 2) {
-    return []; // Skipping packages that are deeper than 2 dirs in
-  }
-  const files = await fs.readdir(dir);
-  const paths = await Promise.all(
-    files
-      .filter(file => !IGNORED_DIRS.includes(file))
-      .map(async file => {
-        const path = joinPath(dir, file);
-
-        if ((await fs.stat(path)).isDirectory()) {
-          return findPackageJsonDirs(path, depth + 1);
-        } else if (file === 'package.json') {
-          return dir;
-        }
-        return [];
-      }),
-  );
-  return paths.flat();
-}
-
-// A replacement for `fossa init`, as that generates a bad config for this repo
-async function generateConfig(paths) {
-  let content = FOSSA_YAML_HEAD;
-
-  for (const path of paths) {
-    content += `
-  - name: ${basename(path)}
-    type: npm
-    path: ${path}
-    target: ${path}
-    options:
-      strategy: yarn-list
+const FOSSA_CONFIG = `
+version: 3
+server: https://app.fossa.com
+project:
+  id: backstage
+  name: backstage
+targets:
+  only:
+    - type: yarn
+      path: ./
 `;
-  }
 
-  return content;
-}
-
-// Runs `fossa analyze`, with 502 errors being retried up to 3 times
+// Runs `fossa analyze`, with 502 errors being retried up to 3 times.
 async function runAnalyze(githubRef) {
   for (let attempt = 1; attempt <= 3; attempt++) {
     console.error(`Running fossa analyze, attempt ${attempt}`);
@@ -90,7 +50,7 @@ async function runAnalyze(githubRef) {
       console.error(stderr);
       console.log(stdout);
 
-      return; // Analyze was successful, we're done
+      return;
     } catch (error) {
       if (!error.code) {
         throw error;
@@ -117,20 +77,15 @@ async function main() {
   if (!githubRef) {
     throw new Error('GITHUB_REF is not set');
   }
-  // This is picked up by the fossa CLI and should be set
   if (!process.env.FOSSA_API_KEY) {
     throw new Error('FOSSA_API_KEY is not set');
   }
 
   process.cwd(resolvePath(__dirname, '..'));
 
-  const packageJsonPaths = await findPackageJsonDirs('.');
+  await fs.writeFile('.fossa.yml', FOSSA_CONFIG, 'utf8');
 
-  const configContents = await generateConfig(packageJsonPaths);
-
-  await fs.writeFile('.fossa.yml', configContents, 'utf8');
-
-  console.error(`Generated fossa config:\n${configContents}`);
+  console.error(`Generated fossa config:\n${FOSSA_CONFIG}`);
 
   await runAnalyze(githubRef);
 }

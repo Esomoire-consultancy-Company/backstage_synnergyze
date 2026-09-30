@@ -335,9 +335,11 @@ devTools:
     plugins:
       - catalog
 
-
 # Virtual Silk Road client projection surface.
 # In Alpha this resolves to the local Backstage/VSR app. Production can point
 # to the dedicated VSR client frontend without changing the control contracts.
 vsr:
   clientBaseUrl: http://localhost:3000
+  telemetry:
+    prometheusBaseUrl: http://127.0.0.1:9090
+    riverBaseUrl: http://127.0.0.1:8000

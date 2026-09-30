@@ -56,6 +56,7 @@ import catalogPlugin from '@backstage/plugin-catalog/alpha';
 import InfoIcon from '@material-ui/icons/Info';
 import { VsrClientControlPage } from './vsr/VsrClientControlPage';
 import { VsrClientAccountPage } from './vsr/VsrClientAccountPage';
+import { VsrEstateControlTowerPage } from './vsr/VsrEstateControlTowerPage';
 
 /*
 
@@ -165,6 +166,7 @@ const devtoolsPluginUnprocessed = createFrontendModule({
 const collectedLegacyPlugins = convertLegacyAppRoot(
   <FlatRoutes>
     <Route path="/catalog-import" element={<CatalogImportPage />} />
+    <Route path="/vsr/estate" element={<VsrEstateControlTowerPage />} />
     <Route path="/vsr/clients/:clientRef" element={<VsrClientControlPage />} />
     <Route path="/vsr/clients" element={<VsrClientControlPage />} />
     <Route path="/account/:clientRef" element={<VsrClientAccountPage />} />
