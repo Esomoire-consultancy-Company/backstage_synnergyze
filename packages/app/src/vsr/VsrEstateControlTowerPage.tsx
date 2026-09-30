@@ -13,12 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { VsrRuntimeTunnelPanel } from './VsrRuntimeTunnelPanel';
-import {
-  discoveryApiRef,
-  fetchApiRef,
-  useApi,
-} from '@backstage/core-plugin-api';
+
 import { useEffect, useMemo, useState } from 'react';
 import {
   Content,
@@ -27,6 +22,11 @@ import {
   InfoCard,
   Page,
 } from '@backstage/core-components';
+import {
+  discoveryApiRef,
+  fetchApiRef,
+  useApi,
+} from '@backstage/core-plugin-api';
 import Box from '@material-ui/core/Box';
 import Button from '@material-ui/core/Button';
 import Chip from '@material-ui/core/Chip';
@@ -37,6 +37,8 @@ import TableCell from '@material-ui/core/TableCell';
 import TableHead from '@material-ui/core/TableHead';
 import TableRow from '@material-ui/core/TableRow';
 import Typography from '@material-ui/core/Typography';
+import { Link as RouterLink } from 'react-router-dom';
+import { VsrRuntimeTunnelPanel } from './VsrRuntimeTunnelPanel';
 
 type HealthState = 'healthy' | 'degraded' | 'blocked' | 'unknown';
 
@@ -54,7 +56,7 @@ interface EstateSignal {
   subject: string;
   observedState: string;
   entrySurface: string;
-  entryHref: string;
+  entryTo: string;
 }
 
 const baseHealthDimensions: HealthDimension[] = [
@@ -106,75 +108,187 @@ const baseHealthDimensions: HealthDimension[] = [
   },
 ];
 
+const EXPECTED_PROMETHEUS_JOBS = ['prometheus', 'river-api'] as const;
+const POLL_INTERVAL_MS = 30_000;
+const REQUEST_TIMEOUT_MS = 10_000;
+
 const stateLabel = (state: HealthState) => state.toUpperCase();
 
-interface PrometheusResult {
-  metric: { job?: string; instance?: string };
-  value: [number, string];
+interface PrometheusTarget {
+  job: string;
+  up: boolean;
 }
 
+interface PrometheusPayload {
+  targets?: PrometheusTarget[];
+}
+
+interface RiverHealthPayload {
+  status?: unknown;
+  database?: unknown;
+}
+
+const summarizePrometheus = (
+  payload: PrometheusPayload,
+): { state: HealthState; detail: string } => {
+  const targets = payload.targets ?? [];
+  const monitored = EXPECTED_PROMETHEUS_JOBS.map(job => ({
+    job,
+    targets: targets.filter(target => target.job === job),
+  }));
+  const downJobs = monitored
+    .filter(({ targets: jobTargets }) => jobTargets.some(target => !target.up))
+    .map(({ job }) => job);
+  const missingJobs = monitored
+    .filter(({ targets: jobTargets }) => jobTargets.length === 0)
+    .map(({ job }) => job);
+
+  if (downJobs.length > 0) {
+    return {
+      state: 'degraded',
+      detail: `Prometheus observed down target(s): ${downJobs.join(', ')}.`,
+    };
+  }
+
+  if (missingJobs.length > 0) {
+    return {
+      state: 'unknown',
+      detail: `Prometheus reachable; expected target(s) missing: ${missingJobs.join(
+        ', ',
+      )}.`,
+    };
+  }
+
+  return {
+    state: 'healthy',
+    detail: `Prometheus expected targets healthy: ${EXPECTED_PROMETHEUS_JOBS.join(
+      ', ',
+    )}.`,
+  };
+};
+
+const summarizeRiver = (
+  payload: RiverHealthPayload,
+): { state: HealthState; detail: string } => {
+  if (typeof payload.status !== 'string') {
+    return {
+      state: 'unknown',
+      detail: 'River responded without an authoritative health status.',
+    };
+  }
+
+  const database =
+    typeof payload.database === 'string' ? payload.database : 'unknown';
+
+  return {
+    state: payload.status === 'healthy' ? 'healthy' : 'degraded',
+    detail: `River: ${payload.status}; DB: ${database}.`,
+  };
+};
+
 export const VsrEstateControlTowerPage = () => {
-  const discovery = useApi(discoveryApiRef);
+  const discoveryApi = useApi(discoveryApiRef);
   const fetchApi = useApi(fetchApiRef);
   const [runtimeState, setRuntimeState] = useState<HealthState>('unknown');
   const [evidenceState, setEvidenceState] = useState<HealthState>('unknown');
-  const [telemetryDetail, setTelemetryDetail] = useState(
-    'Connecting to Alpha telemetry through the Backstage proxy.',
+  const [runtimeDetail, setRuntimeDetail] = useState(
+    'Prometheus telemetry has not yet been observed.',
+  );
+  const [evidenceDetail, setEvidenceDetail] = useState(
+    'River telemetry has not yet been observed.',
   );
 
   useEffect(() => {
     let active = true;
+    let pollTimer: number | undefined;
+    let currentController: AbortController | undefined;
+
+    const requestJson = async <T,>(
+      url: string,
+      signal: AbortSignal,
+    ): Promise<T> => {
+      const response = await fetchApi.fetch(url, { signal });
+      if (!response.ok) {
+        throw new Error(`Telemetry request failed with ${response.status}`);
+      }
+      return response.json() as Promise<T>;
+    };
 
     const loadTelemetry = async () => {
+      const controller = new AbortController();
+      currentController = controller;
+      const timeout = window.setTimeout(
+        () => controller.abort(),
+        REQUEST_TIMEOUT_MS,
+      );
+
       try {
-        const baseUrl = await discovery.getBaseUrl('proxy');
-        const [prometheusResponse, riverResponse] = await Promise.all([
-          fetchApi.fetch(`${baseUrl}/vsr-prometheus/api/v1/query?query=up`),
-          fetchApi.fetch(`${baseUrl}/vsr-river/health`),
+        const baseUrl = await discoveryApi.getBaseUrl('vsr-telemetry');
+        const [prometheusResult, riverResult] = await Promise.allSettled([
+          requestJson<PrometheusPayload>(
+            `${baseUrl}/prometheus/up`,
+            controller.signal,
+          ),
+          requestJson<RiverHealthPayload>(
+            `${baseUrl}/river/health`,
+            controller.signal,
+          ),
         ]);
-
-        if (!prometheusResponse.ok || !riverResponse.ok) {
-          throw new Error('One or more telemetry sources are unavailable');
-        }
-
-        const prometheus = await prometheusResponse.json();
-        const river = await riverResponse.json();
-        const results = (prometheus?.data?.result ?? []) as PrometheusResult[];
-        const monitored = results.filter(
-          result =>
-            result.metric.job === 'prometheus' ||
-            result.metric.job === 'river-api',
-        );
-        const allUp =
-          monitored.length >= 2 &&
-          monitored.every(result => result.value?.[1] === '1');
 
         if (!active) return;
 
-        setRuntimeState(allUp ? 'healthy' : 'degraded');
-        setEvidenceState(river?.status === 'healthy' ? 'healthy' : 'degraded');
-        setTelemetryDetail(
-          `Prometheus targets: ${monitored.length}; River: ${
-            river?.status ?? 'unknown'
-          }; DB: ${river?.database ?? 'unknown'}.`,
-        );
+        if (prometheusResult.status === 'fulfilled') {
+          const summary = summarizePrometheus(prometheusResult.value);
+          setRuntimeState(summary.state);
+          setRuntimeDetail(summary.detail);
+        } else {
+          setRuntimeState('unknown');
+          setRuntimeDetail(
+            'Prometheus telemetry unavailable; no runtime state inferred.',
+          );
+        }
+
+        if (riverResult.status === 'fulfilled') {
+          const summary = summarizeRiver(riverResult.value);
+          setEvidenceState(summary.state);
+          setEvidenceDetail(summary.detail);
+        } else {
+          setEvidenceState('unknown');
+          setEvidenceDetail(
+            'River telemetry unavailable; no evidence state inferred.',
+          );
+        }
       } catch (_error) {
         if (!active) return;
         setRuntimeState('unknown');
         setEvidenceState('unknown');
-        setTelemetryDetail(
-          'Live telemetry unavailable from this Backstage runtime; no healthy state inferred.',
+        setRuntimeDetail(
+          'Telemetry adapter unavailable; no runtime state inferred.',
         );
+        setEvidenceDetail(
+          'Telemetry adapter unavailable; no evidence state inferred.',
+        );
+      } finally {
+        window.clearTimeout(timeout);
+        if (currentController === controller) {
+          currentController = undefined;
+        }
+        if (active) {
+          pollTimer = window.setTimeout(loadTelemetry, POLL_INTERVAL_MS);
+        }
       }
     };
 
-    loadTelemetry();
-    const timer = window.setInterval(loadTelemetry, 30000);
+    void loadTelemetry();
+
     return () => {
       active = false;
-      window.clearInterval(timer);
+      if (pollTimer !== undefined) {
+        window.clearTimeout(pollTimer);
+      }
+      currentController?.abort();
     };
-  }, [discovery, fetchApi]);
+  }, [discoveryApi, fetchApi]);
 
   const healthDimensions = useMemo(
     () =>
@@ -199,9 +313,9 @@ export const VsrEstateControlTowerPage = () => {
           : 'info',
       scope: 'VSR > Alpha > ALPHA-NODE-001',
       subject: 'Alpha telemetry',
-      observedState: telemetryDetail,
+      observedState: `${runtimeDetail} ${evidenceDetail}`,
       entrySurface: 'DevTools',
-      entryHref: '/devtools',
+      entryTo: '/devtools',
     },
   ];
 
@@ -213,7 +327,11 @@ export const VsrEstateControlTowerPage = () => {
       />
       <Content>
         <ContentHeader title="Estate">
-          <Button variant="outlined" href="/vsr/clients/CLIENT-001">
+          <Button
+            component={RouterLink}
+            to="/vsr/clients/CLIENT-001"
+            variant="outlined"
+          >
             Open Client Control
           </Button>
         </ContentHeader>
@@ -230,18 +348,8 @@ export const VsrEstateControlTowerPage = () => {
                 until its authoritative source is connected.
               </Typography>
               <Box display="flex" gridGap={8} flexWrap="wrap">
-                <Chip
-                  size="small"
-                  label="GENESIS SEED — REGISTRATION UNVERIFIED"
-                />
-                <Chip
-                  size="small"
-                  label={
-                    runtimeState !== 'unknown' && evidenceState !== 'unknown'
-                      ? 'TELEMETRY OBSERVED'
-                      : 'TELEMETRY UNAVAILABLE'
-                  }
-                />
+                <Chip size="small" label="GENESIS REGISTERED" />
+                <Chip size="small" label="PROMETHEUS + RIVER CONNECTED" />
                 <Chip size="small" label="TERMINAL = BREAK GLASS" />
               </Box>
             </InfoCard>
@@ -306,9 +414,10 @@ export const VsrEstateControlTowerPage = () => {
                     <TableCell>{signal.observedState}</TableCell>
                     <TableCell>
                       <Button
+                        component={RouterLink}
                         size="small"
+                        to={signal.entryTo}
                         variant="outlined"
-                        href={signal.entryHref}
                       >
                         {signal.entrySurface}
                       </Button>
@@ -341,17 +450,28 @@ export const VsrEstateControlTowerPage = () => {
                   when the higher layers cannot resolve the fault.
                 </Typography>
                 <Box mt={2} display="flex" gridGap={8} flexWrap="wrap">
-                  <Button size="small" variant="outlined" href="/catalog">
+                  <Button
+                    component={RouterLink}
+                    size="small"
+                    to="/catalog"
+                    variant="outlined"
+                  >
                     Genesis / Catalog
                   </Button>
                   <Button
+                    component={RouterLink}
                     size="small"
+                    to="/vsr/clients/CLIENT-001"
                     variant="outlined"
-                    href="/vsr/clients/CLIENT-001"
                   >
                     Warden / Synnergyze
                   </Button>
-                  <Button size="small" variant="outlined" href="/devtools">
+                  <Button
+                    component={RouterLink}
+                    size="small"
+                    to="/devtools"
+                    variant="outlined"
+                  >
                     DevTools
                   </Button>
                 </Box>
@@ -372,8 +492,14 @@ export const VsrEstateControlTowerPage = () => {
                 <Typography variant="body2" paragraph>
                   4. Warden decision validity and active support sessions.
                 </Typography>
-                <Typography variant="body2">
+                <Typography variant="body2" paragraph>
                   5. Synnergyze dependency, Matter and capacity projections.
+                </Typography>
+                <Typography variant="caption">
+                  Story projection remains NOT WIRED. The live River API exposes
+                  generic events, not a Warden-filtered Story endpoint; a
+                  bounded Warden-admitted projection is required before Story
+                  state is shown here.
                 </Typography>
               </InfoCard>
             </Grid>

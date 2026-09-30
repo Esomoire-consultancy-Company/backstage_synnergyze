@@ -79,21 +79,18 @@ test('Estate keeps tunnel passage separate from Spotlight and Sentinel time', as
       body: JSON.stringify(available ? snapshot : {}),
     }),
   );
-  await page.route('**/api/proxy/vsr-prometheus/**', route =>
+  await page.route('**/api/vsr-telemetry/prometheus/up', route =>
     route.fulfill({
       contentType: 'application/json',
       body: JSON.stringify({
-        status: 'success',
-        data: {
-          result: [
-            { metric: { job: 'prometheus' }, value: [now / 1000, '1'] },
-            { metric: { job: 'river-api' }, value: [now / 1000, '1'] },
-          ],
-        },
+        targets: [
+          { job: 'prometheus', up: true },
+          { job: 'river-api', up: true },
+        ],
       }),
     }),
   );
-  await page.route('**/api/proxy/vsr-river/health', route =>
+  await page.route('**/api/vsr-telemetry/river/health', route =>
     route.fulfill({
       contentType: 'application/json',
       body: JSON.stringify({ status: 'healthy', database: 'connected' }),

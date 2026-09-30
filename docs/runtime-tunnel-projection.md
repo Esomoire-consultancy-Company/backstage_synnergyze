@@ -99,3 +99,14 @@ validated read-model view; there is only one rendered tunnel. Warden on port
 projection endpoint. The alternative configured Backstage port 7013 refused
 connections when checked. These observations do not authorize minting a new
 Warden grant or treating raw River events as an admitted Story.
+
+The patch also incorporates PR revision 3363f4274742: the authenticated
+vsr-telemetry backend, independent telemetry polling, multi-target degradation,
+and SPA navigation are preserved. The named-export registration issue is resolved
+by that revision's default export. Legacy static tunnel markup tests are replaced
+by behavioral projection, disclosure, gate-boundary and Spotlight tests.
+
+A fresh local observation on 30 September returned HTTP 200 for River, Warden,
+Prometheus and Grafana health URLs. Port 7007 returned HTTP 404 for both
+/api/vsr-telemetry/river/health and the optional tunnel route. These observations
+are specific to that listener, not proof that every Alpha deployment lacks them.
