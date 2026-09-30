@@ -22,11 +22,3 @@
   version "1.11.31"
   resolved "https://registry.yarnpkg.com/@swc/core/-/core-1.11.31.tgz#e5de9ed005551ce9a16aa69e79935fc33065475c"
   integrity sha512-mAby9aUnKRjMEA7v8cVZS9Ah4duoRBnX7X6r5qrhTxErx+68MoY1TPrVwj/66/SWN3Bl+jijqAqoB8Qx0QE34A==
-
-// Node 24.9+ requires Jest's rebuilt native ESM runtime for require(esm)
-// interoperability. This prevents generated-app tests from failing on
-// ESM packages such as d3-selection.
-jest@^30.2.0:
-  version "30.4.2"
-  resolved "https://registry.yarnpkg.com/jest/-/jest-30.4.2.tgz#e9bdb00f4bf1126d781b0d98e23130db096bbd9a"
-  integrity sha512-Yi1jqNC/Oq0N4hBgNH/YvBpP1P57QqundgytzYqy3yqAa7NZPNjSoi4SGbRAXDMdBzNE6xBCi5U7RgfrvMEUVQ==
