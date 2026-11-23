@@ -45,7 +45,7 @@ async function runAnalyze(githubRef) {
       const { stdout, stderr } = await execFile(
         'fossa',
         ['analyze', '--branch', githubRef],
-        { shell: true },
+        { shell: false },
       );
       console.error(stderr);
       console.log(stdout);
@@ -69,7 +69,7 @@ async function runAnalyze(githubRef) {
     }
   }
 
-  console.error('Maximum number of retries reached, skipping fossa analysis');
+  throw new Error('Maximum number of retries reached; FOSSA analysis did not complete');
 }
 
 async function main() {
@@ -81,7 +81,7 @@ async function main() {
     throw new Error('FOSSA_API_KEY is not set');
   }
 
-  process.cwd(resolvePath(__dirname, '..'));
+  process.chdir(resolvePath(__dirname, '..'));
 
   await fs.writeFile('.fossa.yml', FOSSA_CONFIG, 'utf8');
 
