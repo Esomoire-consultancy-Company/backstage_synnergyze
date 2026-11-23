@@ -69,7 +69,9 @@ async function runAnalyze(githubRef) {
     }
   }
 
-  throw new Error('Maximum number of retries reached; FOSSA analysis did not complete');
+  throw new Error(
+    'Maximum number of retries reached; FOSSA analysis did not complete',
+  );
 }
 
 async function main() {
