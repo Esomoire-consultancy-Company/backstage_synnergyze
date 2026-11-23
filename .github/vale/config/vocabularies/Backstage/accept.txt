@@ -306,6 +306,7 @@ nginx
 nodegit
 nodejs
 nohoist
+nondecreasing
 nonces
 noop
 npm
@@ -315,6 +316,7 @@ nvarchar
 nvm
 OAuth
 octokit
+observedAt
 oidc
 Okta
 Olausson
@@ -556,6 +558,7 @@ URLs
 utils
 Valentina
 validator
+validUntil
 validators
 Valkey
 varchar
