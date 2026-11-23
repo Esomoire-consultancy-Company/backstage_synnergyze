@@ -1,5 +1,9 @@
 import { render, waitFor } from '@testing-library/react';
 
+// Loading the generated application and its plugins can exceed Jest's default
+// five-second timeout on CI runners.
+jest.setTimeout(15_000);
+
 describe('App', () => {
   it('should render', async () => {
     process.env = {
