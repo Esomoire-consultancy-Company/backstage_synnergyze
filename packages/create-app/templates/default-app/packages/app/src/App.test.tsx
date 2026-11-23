@@ -1,8 +1,9 @@
 import { render, waitFor } from '@testing-library/react';
 
-// Loading the generated application and its plugins can exceed Jest's default
-// five-second timeout on CI runners.
-jest.setTimeout(15_000);
+// This is a full generated-application smoke test. Loading its plugin graph
+// under Windows CI can take longer than the default Jest timeout; retain
+// a finite upper bound so a genuine hang still fails the gate.
+jest.setTimeout(60_000);
 
 describe('App', () => {
   it('should render', async () => {
