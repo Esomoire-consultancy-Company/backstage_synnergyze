@@ -306,8 +306,8 @@ nginx
 nodegit
 nodejs
 nohoist
-nondecreasing
 nonces
+nondecreasing
 noop
 npm
 nullable
@@ -315,8 +315,8 @@ nunjucks
 nvarchar
 nvm
 OAuth
-octokit
 observedAt
+octokit
 oidc
 Okta
 Olausson
@@ -558,8 +558,8 @@ URLs
 utils
 Valentina
 validator
-validUntil
 validators
+validUntil
 Valkey
 varchar
 viewport
