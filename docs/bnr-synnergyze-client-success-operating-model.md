@@ -45,15 +45,15 @@ Suggested interpretation:
 
 ## Operating Actors
 
-| Actor | Commercial role | System role |
-| --- | --- | --- |
-| BMP | Revenue intake, leads, orders, market relationship | CRM / Revenue Master |
-| Synnergyze | Service assurance, implementation, field ops, tickets | Assurance Cockpit / Backstage portal |
-| SILK | Wallet, card, escrow, payout, settlement records | Settlement ledger |
-| DigitalMe | Identity, consent, wallet ownership, consumer services | User and company identity spine |
-| BNR | Registry, governance, policy, MIS, audit discipline | Governance and reporting spine |
-| Creators Common | Problem discovery, new solutions, social innovation | Social innovation wing |
-| Believers Common | Guarantee, enterprise trust, reserve, policy approval | Enterprise guarantee wing |
+| Actor            | Commercial role                                        | System role                          |
+| ---------------- | ------------------------------------------------------ | ------------------------------------ |
+| BMP              | Revenue intake, leads, orders, market relationship     | CRM / Revenue Master                 |
+| Synnergyze       | Service assurance, implementation, field ops, tickets  | Assurance Cockpit / Backstage portal |
+| SILK             | Wallet, card, escrow, payout, settlement records       | Settlement ledger                    |
+| DigitalMe        | Identity, consent, wallet ownership, consumer services | User and company identity spine      |
+| BNR              | Registry, governance, policy, MIS, audit discipline    | Governance and reporting spine       |
+| Creators Common  | Problem discovery, new solutions, social innovation    | Social innovation wing               |
+| Believers Common | Guarantee, enterprise trust, reserve, policy approval  | Enterprise guarantee wing            |
 
 ## Revenue and Expense Flow
 
@@ -72,24 +72,24 @@ BMP CRM Revenue Master
 
 Every client should have a success card with these fields:
 
-| Field | Description |
-| --- | --- |
-| Client ID | BNR / Synnergyze client reference |
-| Client Type | individual, creator, SME, factory, enterprise, civic node |
-| BMP CRM ID | source revenue record |
-| DigitalMe ID | identity authority |
-| SILK Wallet ID | settlement and value account |
-| Service Package | Synnergyze package being delivered |
-| Verified Gross Revenue | revenue enabled or processed |
-| Client Total Expense | total cost charged to client |
-| Client Net Benefit | post-expense benefit |
-| Success Ratio | net benefit divided by total expense |
-| SLA Level | service assurance class |
-| Evidence Status | pending, sufficient, exception, closed |
-| Settlement Status | pending, held, cleared, disputed |
-| Tax MIS Status | draft, review, ready, filed |
-| Believers Guarantee | none, moral, service, financial, programme |
-| Creators Link | problem, innovation, community or creator origin |
+| Field                  | Description                                               |
+| ---------------------- | --------------------------------------------------------- |
+| Client ID              | BNR / Synnergyze client reference                         |
+| Client Type            | individual, creator, SME, factory, enterprise, civic node |
+| BMP CRM ID             | source revenue record                                     |
+| DigitalMe ID           | identity authority                                        |
+| SILK Wallet ID         | settlement and value account                              |
+| Service Package        | Synnergyze package being delivered                        |
+| Verified Gross Revenue | revenue enabled or processed                              |
+| Client Total Expense   | total cost charged to client                              |
+| Client Net Benefit     | post-expense benefit                                      |
+| Success Ratio          | net benefit divided by total expense                      |
+| SLA Level              | service assurance class                                   |
+| Evidence Status        | pending, sufficient, exception, closed                    |
+| Settlement Status      | pending, held, cleared, disputed                          |
+| Tax MIS Status         | draft, review, ready, filed                               |
+| Believers Guarantee    | none, moral, service, financial, programme                |
+| Creators Link          | problem, innovation, community or creator origin          |
 
 ## Expense Charging Principle
 
@@ -107,12 +107,12 @@ The commercial objective is not to maximize client fees. The objective is to mai
 
 Separate the ledgers to avoid confusion.
 
-| Ledger | Tracks |
-| --- | --- |
-| Commercial MIS | BMP revenue, Synnergyze fees, client expenses, invoices |
-| Settlement MIS | SILK wallet inflow/outflow, escrow, payouts, cards, refunds |
+| Ledger                | Tracks                                                                  |
+| --------------------- | ----------------------------------------------------------------------- |
+| Commercial MIS        | BMP revenue, Synnergyze fees, client expenses, invoices                 |
+| Settlement MIS        | SILK wallet inflow/outflow, escrow, payouts, cards, refunds             |
 | Civic / Community MIS | grants, donations, sponsorships, welfare backflow, public-good activity |
-| Governance MIS | guarantees, reserves, audit costs, approvals, disputes |
+| Governance MIS        | guarantees, reserves, audit costs, approvals, disputes                  |
 
 ## Two-Wing Governance Split
 

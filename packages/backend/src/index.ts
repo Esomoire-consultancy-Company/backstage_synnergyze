@@ -75,4 +75,5 @@ backend.add(rootSystemMetadataServiceFactory);
 backend.add(import('@backstage/plugin-events-backend-module-google-pubsub'));
 backend.add(import('@backstage/plugin-mcp-actions-backend'));
 backend.add(import('./synnergyze/providerDiscoveryPlugin'));
+backend.add(import('./vsrTelemetryPlugin'));
 backend.start();
